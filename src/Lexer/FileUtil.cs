@@ -13,17 +13,5 @@ public static class FileUtil
         // Читаем и сортируем строки файла.
         List<string> lines = File.ReadLines(path, Encoding.UTF8).ToList();
         lines.Sort();
-
-        // Перезаписываем файл с нуля (режим Truncate).
-        using FileStream file = File.Open(path, FileMode.Truncate, FileAccess.Write);
-        for (int i = 0, iMax = lines.Count; i < iMax; ++i)
-        {
-            byte[] bytes = Encoding.UTF8.GetBytes(lines[i]);
-            file.Write(bytes);
-            if (i != iMax - 1)
-            {
-                file.Write("\n"u8);
-            }
-        }
     }
 }

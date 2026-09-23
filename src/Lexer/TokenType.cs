@@ -3,7 +3,6 @@
 /// <summary>
 /// Виды токенов языка MiniPascal.
 /// </summary>
-
 public enum TokenType
 {
     Unknown,
@@ -33,11 +32,9 @@ public enum TokenType
     Not,
     Div,
     Mod,
-    
     Identifier,
     IntegerLiteral,
     StringLiteral,
-    
     Plus,
     Minus,
     Multiply,
@@ -48,7 +45,6 @@ public enum TokenType
     Greater,
     GreaterOrEqual,
     Assign,
-    
     OpenParen,
     CloseParen,
     OpenBracket,
