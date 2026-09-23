@@ -1,0 +1,61 @@
+﻿namespace ExampleLib;
+
+/// <summary>
+/// Виды токенов языка MiniPascal.
+/// </summary>
+
+public enum TokenType
+{
+    Unknown,
+    Program,
+    Var,
+    Procedure,
+    Function,
+    Integer,
+    Boolean,
+    String,
+    Record,
+    Array,
+    Of,
+    Begin,
+    End,
+    If,
+    Then,
+    Else,
+    While,
+    Do,
+    Write,
+    Read,
+    True,
+    False,
+    And,
+    Or,
+    Not,
+    Div,
+    Mod,
+    
+    Identifier,
+    IntegerLiteral,
+    StringLiteral,
+    
+    Plus,
+    Minus,
+    Multiply,
+    Equal,
+    NotEqual,
+    Less,
+    LessOrEqual,
+    Greater,
+    GreaterOrEqual,
+    Assign,
+    
+    OpenParen,
+    CloseParen,
+    OpenBracket,
+    CloseBracket,
+    Comma,
+    Colon,
+    Semicolon,
+    Dot,
+    DoubleDot,
+}
