@@ -73,4 +73,24 @@ public class LexerTests
         Lexer lexer = CreateLexer("122a");
         Assert.Throws<Exception>(() => lexer.NextToken());
     }
+    
+    [Fact]
+    public void NextToken_HandleStringLiteral()
+    {
+        Lexer lexer = CreateLexer("'123'");
+        Token token = lexer.NextToken();
+        Assert.Equal(TokenType.StringLiteral, token.Type);
+    }
+    [Fact]
+    public void NextToken_ThrowExceptionUnclosedString()
+    {
+        Lexer lexer = CreateLexer("'123");
+        Assert.Throws<Exception>(() => lexer.NextToken());
+    }
+    [Fact]
+    public void NextToken_ThrowExceptionNewLineInString()
+    {
+        Lexer lexer = CreateLexer("'\n'");
+        Assert.Throws<Exception>(() => lexer.NextToken());
+    }
 }

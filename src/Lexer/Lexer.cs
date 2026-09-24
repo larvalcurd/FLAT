@@ -57,6 +57,10 @@ public class Lexer
         {
             return ReadNumericLiteral();
         }
+        if (current == '\'')
+        {
+            return ReadStringLiteral();
+        }
         throw new Exception($"unexpected character {current}");
     }
     
@@ -78,7 +82,11 @@ public class Lexer
         }
         return new Token(TokenType.Identifier, text, startLine, startCol);
     }
-
+    
+    
+    /// <summary>
+    /// Считывание числового литерала.
+    /// </summary>
     private Token ReadNumericLiteral()
     {
         int startLine = _sourceScaner.Line;
@@ -100,6 +108,54 @@ public class Lexer
             }
         }
         return new Token(TokenType.IntegerLiteral, sb.ToString(), startLine, startCol);
+    }
+
+    /// <summary>
+    /// Считывание строкового литерала
+    /// </summary>
+    private Token ReadStringLiteral()
+    {
+        int startLine = _sourceScaner.Line;
+        int startCol = _sourceScaner.Column;
+        StringBuilder sb = new();
+        
+        _sourceScaner.Advance(); 
+
+        while (!_sourceScaner.IsEof())
+        {
+            char c = _sourceScaner.Peek();
+            
+            if (c == '\'')
+            {
+                if (_sourceScaner.Peek(1) == '\'')
+                {
+                    sb.Append('\'');
+                    _sourceScaner.Advance();
+                    _sourceScaner.Advance();
+                    continue;
+                }
+                
+                _sourceScaner.Advance(); 
+                return new Token(TokenType.StringLiteral, sb.ToString(), startLine, startCol);
+            }
+            
+            if (c == '\n' || c == '\r')
+            {
+                throw new Exception(
+                    $"Lexical error: unclosed string literal starting at {startLine}:{startCol}");
+            }
+            
+            if (IsInvalidControlChar(c))
+            {
+                throw new Exception(
+                    $"Lexical error: invalid control character in string literal at {_sourceScaner.Line}:{_sourceScaner.Column}");
+            }
+
+            sb.Append(_sourceScaner.Advance());
+        }
+        
+        throw new Exception(
+            $"Lexical error: unclosed string literal starting at {startLine}:{startCol}");
     }
     
     /// <summary>
