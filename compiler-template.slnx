@@ -3,6 +3,6 @@
     <Project Path="src/Lexer/Lexer.csproj" />
   </Folder>
   <Folder Name="/tests/">
-    <Project Path="tests/ExampleLib.UnitTests/ExampleLib.UnitTests.csproj" />
+    <Project Path="tests/MicroPascal.Tests/MicroPascal.Tests.csproj" />
   </Folder>
 </Solution>

@@ -10,7 +10,7 @@ public class SourceHandler
     private readonly string _inputText;
     private int _position;
     private int _line = 1;
-    private int _column = 1;
+    private int _column = 0;
     
     public SourceHandler(string inputText)
     {
@@ -54,7 +54,7 @@ public class SourceHandler
         {
             case '\n':
                 _line++;
-                _column = 1;
+                _column = 0;
                 break;
             case '\r':
                 break;
@@ -72,4 +72,5 @@ public class SourceHandler
     public bool IsEof(int pos) => pos >= _inputText.Length;
     public int Line => _line;
     public int Column => _column;
+    public int Position => _position;
 }
