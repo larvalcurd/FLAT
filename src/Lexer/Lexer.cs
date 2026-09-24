@@ -2,6 +2,8 @@
 
 namespace ExampleLib;
 
+
+// TODO: Избавиться от варнингов в пределах проекта, по имени Лексер
 public class Lexer
 {
     private readonly SourceScaner _sourceScaner;
@@ -36,6 +38,20 @@ public class Lexer
         { "mod", TokenType.Mod }
     };
     
+    private static readonly Dictionary<char, TokenType> SingleCharTokens = new()
+    {
+        { '+', TokenType.Plus },
+        { '-', TokenType.Minus },
+        { '*', TokenType.Multiply },
+        { '=', TokenType.Equal },
+        { '(', TokenType.OpenParen },
+        { ')', TokenType.CloseParen },
+        { '[', TokenType.OpenBracket },
+        { ']', TokenType.CloseBracket },
+        { ',', TokenType.Comma },
+        { ';', TokenType.Semicolon },
+    };
+    
     public Lexer(string source)
     {
         _sourceScaner = new SourceScaner(source);
@@ -61,7 +77,12 @@ public class Lexer
         {
             return ReadStringLiteral();
         }
-        throw new Exception($"unexpected character {current}");
+        if (SingleCharTokens.TryGetValue(current, out TokenType type))
+        {
+            _sourceScaner.Advance();
+            return new Token(type, current.ToString(), _sourceScaner.Line, _sourceScaner.Column);
+        }
+        return ReadComplexOperator(current);
     }
     
     private Token ReadIdentifierOrKeyword()
@@ -162,6 +183,57 @@ public class Lexer
         
         throw new Exception(
             $"Lexical error: unclosed string literal starting at {startLine}:{startCol}");
+    }
+
+    /// <summary>
+    /// Обработка сложных(комплексных) операторов состоящих из 2 символов.
+    /// </summary>
+    private Token ReadComplexOperator(char c)
+    {
+        int line = _sourceScaner.Line;
+        int col = _sourceScaner.Column;
+        switch (c)
+        {
+            case ':':
+                _sourceScaner.Advance();
+                if (_sourceScaner.Peek(1) == '=')
+                {
+                    _sourceScaner.Advance();
+                    return new Token(TokenType.Assign, ":=", line, col);
+                }
+                return new Token(TokenType.Colon, ":", line, col);
+            case '<':
+                _sourceScaner.Advance();
+                if (_sourceScaner.Peek(1) == '>')
+                {
+                    _sourceScaner.Advance();
+                    return new Token(TokenType.NotEqual, "<>", line, col);
+                }
+                if (_sourceScaner.Peek(1) == '=')
+                {
+                    _sourceScaner.Advance();
+                    return new Token(TokenType.LessOrEqual, "<=", line, col);
+                }
+                return new Token(TokenType.Less, "<", line, col);
+            case '>':
+                _sourceScaner.Advance();
+                if (_sourceScaner.Peek(1) == '=')
+                {
+                    _sourceScaner.Advance();
+                    return new Token(TokenType.GreaterOrEqual, ">=", line, col);
+                }
+                return new Token(TokenType.Greater, ">", line, col);
+            case '.':
+                _sourceScaner.Advance();
+                if (_sourceScaner.Peek(1) == '.')
+                {
+                    _sourceScaner.Advance();
+                    return new Token(TokenType.DoubleDot, "..", line, col);
+                }
+                return new Token(TokenType.Dot, ".", line, col);
+            default:
+                throw new Exception($"Lexical error: unexpected character '{c}' at {line}:{col}");       
+        }
     }
     
     /// <summary>
