@@ -5,14 +5,14 @@
 /// Класс TextHandler, отвечает за считывание и хранение текста из файла,
 /// а также хранения позиции нахождения "каретки". 
 /// </summary>
-public class SourceHandler
+public class SourceScaner
 {
     private readonly string _inputText;
     private int _position;
     private int _line = 1;
     private int _column = 0;
     
-    public SourceHandler(string inputText)
+    public SourceScaner(string inputText)
     {
         _inputText = inputText;
         _position = 0;
@@ -30,11 +30,7 @@ public class SourceHandler
     public char Peek(int offset = 0)
     {
         int pos = _position + offset;
-        if (IsEof(pos))
-        {
-            return '\0';
-        }
-        return _inputText[pos];
+        return pos >= _inputText.Length ? _inputText[pos] : '\0';
     }
     
     /// <summary>
@@ -43,7 +39,7 @@ public class SourceHandler
     /// </summary>
     public char Advance()
     {
-        if (IsEof(_position))
+        if (IsEof())
         {
             return '\0';
         }
@@ -69,7 +65,7 @@ public class SourceHandler
     /// Проверяет, достигнут ли конец файла относительно переданной позиции.
     /// </summary>
     /// <returns>Возвращает флаг, указывающий на факт возвращения или нет</returns>
-    public bool IsEof(int pos) => pos >= _inputText.Length;
+    public bool IsEof() => _position >= _inputText.Length;
     public int Line => _line;
     public int Column => _column;
     public int Position => _position;
