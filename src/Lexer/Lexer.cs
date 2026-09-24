@@ -92,6 +92,12 @@ public class Lexer
         int startLine = _sourceScaner.Line;
         int startCol = _sourceScaner.Column;
         StringBuilder sb = new();
+        if (_sourceScaner.Peek() == '0')
+        {
+            throw new Exception(
+                $"Lexical error: invalid numeric literal at {startLine}:{startCol}. " +
+                $"Identifier cannot start with a 0.");
+        }
         while (!_sourceScaner.IsEof() && char.IsDigit(_sourceScaner.Peek()))
         {
             sb.Append(_sourceScaner.Advance());

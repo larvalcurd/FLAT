@@ -68,6 +68,12 @@ public class LexerTests
         Assert.Equal(TokenType.IntegerLiteral, token.Type);
     }
     [Fact]
+    public void NextToken_HandleExceptionNumericLiteralLeadZero()
+    {
+        Lexer lexer = CreateLexer("0122");
+        Assert.Throws<Exception>(() => lexer.NextToken());
+    }
+    [Fact]
     public void NextToken_ThrowExceptionInvalidIdentifier()
     {
         Lexer lexer = CreateLexer("122a");
