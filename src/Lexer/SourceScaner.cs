@@ -30,7 +30,7 @@ public class SourceScaner
     public char Peek(int offset = 0)
     {
         int pos = _position + offset;
-        return pos >= _inputText.Length ? _inputText[pos] : '\0';
+        return pos < _inputText.Length ? _inputText[pos] : '\0';
     }
     
     /// <summary>
