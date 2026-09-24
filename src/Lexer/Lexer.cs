@@ -2,12 +2,11 @@
 
 namespace ExampleLib;
 
-
-// TODO: Избавиться от варнингов в пределах проекта, по имени Лексер
-public class Lexer
+// TODO: Избавиться от предупреждений в пределах проекта, по имени Лексер
+public class Lexer(string source)
 {
-    private readonly SourceScaner _sourceScaner;
-    
+    private readonly SourceScanner _sourceScanner = new(source);
+
     private static readonly Dictionary<string, TokenType> Keywords = new()
     {
         { "program", TokenType.Program },
@@ -35,9 +34,9 @@ public class Lexer
         { "or", TokenType.Or },
         { "not", TokenType.Not },
         { "div", TokenType.Div },
-        { "mod", TokenType.Mod }
+        { "mod", TokenType.Mod },
     };
-    
+
     private static readonly Dictionary<char, TokenType> SingleCharTokens = new()
     {
         { '+', TokenType.Plus },
@@ -51,48 +50,49 @@ public class Lexer
         { ',', TokenType.Comma },
         { ';', TokenType.Semicolon },
     };
-    
-    public Lexer(string source)
-    {
-        _sourceScaner = new SourceScaner(source);
-    }
 
     public Token NextToken()
     {
         SkipWhitespaceAndComments();
-        if (_sourceScaner.IsEof())
+        if (_sourceScanner.IsEof())
         {
-            return new Token(TokenType.Unknown, "", _sourceScaner.Line, _sourceScaner.Column);
+            return new Token(TokenType.Unknown, "", _sourceScanner.Line, _sourceScanner.Column);
         }
-        char current = _sourceScaner.Peek();
+
+        char current = _sourceScanner.Peek();
         if (char.IsLetter(current) || current == '_')
         {
             return ReadIdentifierOrKeyword();
         }
+
         if (char.IsDigit(current))
         {
             return ReadNumericLiteral();
         }
+
         if (current == '\'')
         {
             return ReadStringLiteral();
         }
+
         if (SingleCharTokens.TryGetValue(current, out TokenType type))
         {
-            _sourceScaner.Advance();
-            return new Token(type, current.ToString(), _sourceScaner.Line, _sourceScaner.Column);
+            _sourceScanner.Advance();
+            return new Token(type, current.ToString(), _sourceScanner.Line, _sourceScanner.Column);
         }
+
         return ReadComplexOperator(current);
     }
-    
+
     private Token ReadIdentifierOrKeyword()
     {
-        int startLine = _sourceScaner.Line;
-        int startCol = _sourceScaner.Column;
+        int startLine = _sourceScanner.Line;
+        int startCol = _sourceScanner.Column;
         StringBuilder sb = new();
-        while (!_sourceScaner.IsEof() && (char.IsLetter(_sourceScaner.Peek()) || char.IsDigit(_sourceScaner.Peek()) || _sourceScaner.Peek() == '_'))
+        while (!_sourceScanner.IsEof() && (char.IsLetter(_sourceScanner.Peek()) ||
+                                           char.IsDigit(_sourceScanner.Peek()) || _sourceScanner.Peek() == '_'))
         {
-            sb.Append(_sourceScaner.Advance());
+            sb.Append(_sourceScanner.Advance());
         }
 
         string text = sb.ToString();
@@ -101,32 +101,33 @@ public class Lexer
         {
             return new Token(type, text, startLine, startCol);
         }
+
         return new Token(TokenType.Identifier, text, startLine, startCol);
     }
-    
-    
+
     /// <summary>
     /// Считывание числового литерала.
     /// </summary>
     private Token ReadNumericLiteral()
     {
-        int startLine = _sourceScaner.Line;
-        int startCol = _sourceScaner.Column;
+        int startLine = _sourceScanner.Line;
+        int startCol = _sourceScanner.Column;
         StringBuilder sb = new();
-        if (_sourceScaner.Peek() == '0')
+        if (_sourceScanner.Peek() == '0')
         {
             throw new Exception(
                 $"Lexical error: invalid numeric literal at {startLine}:{startCol}. " +
                 $"Identifier cannot start with a 0.");
         }
-        while (!_sourceScaner.IsEof() && char.IsDigit(_sourceScaner.Peek()))
+
+        while (!_sourceScanner.IsEof() && char.IsDigit(_sourceScanner.Peek()))
         {
-            sb.Append(_sourceScaner.Advance());
+            sb.Append(_sourceScanner.Advance());
         }
 
-        if (!_sourceScaner.IsEof())
+        if (!_sourceScanner.IsEof())
         {
-            char nextChar = _sourceScaner.Peek();
+            char nextChar = _sourceScanner.Peek();
             if (char.IsLetter(nextChar) || nextChar == '_')
             {
                 throw new Exception(
@@ -134,6 +135,7 @@ public class Lexer
                     $"Identifier cannot start with a digit.");
             }
         }
+
         return new Token(TokenType.IntegerLiteral, sb.ToString(), startLine, startCol);
     }
 
@@ -142,45 +144,45 @@ public class Lexer
     /// </summary>
     private Token ReadStringLiteral()
     {
-        int startLine = _sourceScaner.Line;
-        int startCol = _sourceScaner.Column;
+        int startLine = _sourceScanner.Line;
+        int startCol = _sourceScanner.Column;
         StringBuilder sb = new();
-        
-        _sourceScaner.Advance(); 
 
-        while (!_sourceScaner.IsEof())
+        _sourceScanner.Advance();
+
+        while (!_sourceScanner.IsEof())
         {
-            char c = _sourceScaner.Peek();
-            
+            char c = _sourceScanner.Peek();
+
             if (c == '\'')
             {
-                if (_sourceScaner.Peek(1) == '\'')
+                if (_sourceScanner.Peek(1) == '\'')
                 {
                     sb.Append('\'');
-                    _sourceScaner.Advance();
-                    _sourceScaner.Advance();
+                    _sourceScanner.Advance();
+                    _sourceScanner.Advance();
                     continue;
                 }
-                
-                _sourceScaner.Advance(); 
+
+                _sourceScanner.Advance();
                 return new Token(TokenType.StringLiteral, sb.ToString(), startLine, startCol);
             }
-            
+
             if (c == '\n' || c == '\r')
             {
                 throw new Exception(
                     $"Lexical error: unclosed string literal starting at {startLine}:{startCol}");
             }
-            
+
             if (IsInvalidControlChar(c))
             {
                 throw new Exception(
-                    $"Lexical error: invalid control character in string literal at {_sourceScaner.Line}:{_sourceScaner.Column}");
+                    $"Lexical error: invalid control character in string literal at {_sourceScanner.Line}:{_sourceScanner.Column}");
             }
 
-            sb.Append(_sourceScaner.Advance());
+            sb.Append(_sourceScanner.Advance());
         }
-        
+
         throw new Exception(
             $"Lexical error: unclosed string literal starting at {startLine}:{startCol}");
     }
@@ -190,136 +192,158 @@ public class Lexer
     /// </summary>
     private Token ReadComplexOperator(char c)
     {
-        int line = _sourceScaner.Line;
-        int col = _sourceScaner.Column;
+        int line = _sourceScanner.Line;
+        int col = _sourceScanner.Column;
         switch (c)
         {
             case ':':
-                _sourceScaner.Advance();
-                if (_sourceScaner.Peek(1) == '=')
+                _sourceScanner.Advance();
+                if (_sourceScanner.Peek(1) == '=')
                 {
-                    _sourceScaner.Advance();
+                    _sourceScanner.Advance();
                     return new Token(TokenType.Assign, ":=", line, col);
                 }
+
                 return new Token(TokenType.Colon, ":", line, col);
             case '<':
-                _sourceScaner.Advance();
-                if (_sourceScaner.Peek(1) == '>')
+                _sourceScanner.Advance();
+                if (_sourceScanner.Peek(1) == '>')
                 {
-                    _sourceScaner.Advance();
+                    _sourceScanner.Advance();
                     return new Token(TokenType.NotEqual, "<>", line, col);
                 }
-                if (_sourceScaner.Peek(1) == '=')
+
+                if (_sourceScanner.Peek(1) == '=')
                 {
-                    _sourceScaner.Advance();
+                    _sourceScanner.Advance();
                     return new Token(TokenType.LessOrEqual, "<=", line, col);
                 }
+
                 return new Token(TokenType.Less, "<", line, col);
             case '>':
-                _sourceScaner.Advance();
-                if (_sourceScaner.Peek(1) == '=')
+                _sourceScanner.Advance();
+                if (_sourceScanner.Peek(1) == '=')
                 {
-                    _sourceScaner.Advance();
+                    _sourceScanner.Advance();
                     return new Token(TokenType.GreaterOrEqual, ">=", line, col);
                 }
+
                 return new Token(TokenType.Greater, ">", line, col);
             case '.':
-                _sourceScaner.Advance();
-                if (_sourceScaner.Peek(1) == '.')
+                _sourceScanner.Advance();
+                if (_sourceScanner.Peek(1) == '.')
                 {
-                    _sourceScaner.Advance();
+                    _sourceScanner.Advance();
                     return new Token(TokenType.DoubleDot, "..", line, col);
                 }
+
                 return new Token(TokenType.Dot, ".", line, col);
             default:
-                throw new Exception($"Lexical error: unexpected character '{c}' at {line}:{col}");       
+                throw new Exception($"Lexical error: unexpected character '{c}' at {line}:{col}");
         }
     }
-    
+
     /// <summary>
     /// Пропуск комментариев, а также пробельных символов
     /// </summary>
     private void SkipWhitespaceAndComments()
     {
-    while (!_sourceScaner.IsEof())
-    {
-        char c = _sourceScaner.Peek();
-        if (c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\f')
+        while (!_sourceScanner.IsEof())
         {
-            _sourceScaner.Advance();
-            continue;
+            char c = _sourceScanner.Peek();
+            if (c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\f')
+            {
+                _sourceScanner.Advance();
+                continue;
+            }
+
+            if (c == '/' && _sourceScanner.Peek(1) == '/')
+            {
+                _sourceScanner.Advance();
+                _sourceScanner.Advance();
+                SkipOneLineComment();
+                continue;
+            }
+
+            if (c == '{')
+            {
+                _sourceScanner.Advance();
+                SkipMultilineComment();
+                continue;
+            }
+
+            break;
         }
-        if (c == '/' && _sourceScaner.Peek(1) == '/')
-        {
-            _sourceScaner.Advance(); 
-            _sourceScaner.Advance();
-            SkipOnelineComment();
-            continue;
-        }
-        if (c == '{')
-        {
-            _sourceScaner.Advance();
-            SkipMultilineComment();            
-            continue;
-        }
-        
-        break;
     }
-}
+
     /// <summary>
     /// Пропуск однострочных комментариев
     /// </summary>
-    private void SkipOnelineComment()
+    private void SkipOneLineComment()
     {
-        while (!_sourceScaner.IsEof())
+        while (!_sourceScanner.IsEof())
         {
-            char commentChar = _sourceScaner.Peek();
+            char commentChar = _sourceScanner.Peek();
             if (commentChar == '\n' || commentChar == '\r')
+            {
                 break;
+            }
+
             if (IsInvalidControlChar(commentChar))
-                throw new Exception($"Lexical error: invalid control character in comment at {_sourceScaner.Line}:{_sourceScaner.Column}");
-            _sourceScaner.Advance();
+            {
+                throw new Exception(
+                    $"Lexical error: invalid control character in comment at {_sourceScanner.Line}:{_sourceScanner.Column}");
+            }
+
+            _sourceScanner.Advance();
         }
-    }    
-    
+    }
+
     /// <summary>
     /// Пропуск многострочных комментариев
     /// </summary>
     private void SkipMultilineComment()
     {
         bool closed = false;
-        while (!_sourceScaner.IsEof())
+        while (!_sourceScanner.IsEof())
         {
-            char commentChar = _sourceScaner.Advance();
-                
+            char commentChar = _sourceScanner.Advance();
+
             if (commentChar == '}')
             {
                 closed = true;
                 break;
             }
-                
+
             if (IsInvalidControlChar(commentChar))
-                throw new Exception($"Lexical error: invalid control character in comment at {_sourceScaner.Line}:{_sourceScaner.Column}");
+            {
+                throw new Exception($"Lexical error: invalid control character in comment at {_sourceScanner.Line}:{_sourceScanner.Column}");
+            }
         }
 
         if (!closed)
-            throw new Exception($"Lexical error: unclosed block comment starting at {_sourceScaner.Line}:{_sourceScaner.Column}");
+        {
+            throw new Exception($"Lexical error: unclosed block comment starting at {_sourceScanner.Line}:{_sourceScanner.Column}");
+        }
+    }
 
-
-    }    
-    
-    
-    
     /// <summary>
     /// Проверяет, является ли символ запрещенным управляющим символом внутри комментария или строки.
-    /// Разрешены: HT (0x09), LF (0x0A), CR (0x0D). 
+    /// Разрешены: HT (0x09), LF (0x0A), CR (0x0D).
     /// Запрещены: 0x00–0x08, 0x0B, 0x0C, 0x0E–0x1F, 0x7F.
     /// </summary>
     private static bool IsInvalidControlChar(char c)
     {
-        if (c >= 0x20) return false;
-        if (c == '\t' || c == '\n' || c == '\r') return false;
-        
+        if (c >= 0x20)
+        {
+            return false;
+        }
+
+        if (c == '\t' || c == '\n' || c == '\r')
+        {
+            return false;
+        }
+
         return true;
     }
 }

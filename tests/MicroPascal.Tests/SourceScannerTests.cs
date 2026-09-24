@@ -3,27 +3,27 @@ using Xunit;
 
 namespace MicroPascal.Tests;
 
-public class SourceScanerTests
+public class SourceScannerTests
 {
     [Fact]
     public void Advance_ShouldReturnFirstCharacter()
     {
-        SourceScaner scaner = new SourceScaner("Hello");
-        char result = scaner.Advance();
+        SourceScanner scanner = new SourceScanner("Hello");
+        char result = scanner.Advance();
         Assert.Equal('H', result);
     }
 
     [Fact]
     public void Peek_ShouldNotChangePosition()
     {
-        SourceScaner scaner = new SourceScaner("AB");
-        char first = scaner.Peek(0);
-        char second = scaner.Peek(1);
-        char firstAgain = scaner.Peek(0);
+        SourceScanner scanner = new SourceScanner("AB");
+        char first = scanner.Peek(0);
+        char second = scanner.Peek(1);
+        char firstAgain = scanner.Peek(0);
         Assert.Equal('A', first);
         Assert.Equal('B', second);
         Assert.Equal('A', firstAgain);
-        Assert.Equal(0, scaner.Position);
+        Assert.Equal(0, scanner.Position);
     }
 
     public static TheoryData<string, int, int> LineColumnTestData()
@@ -41,20 +41,20 @@ public class SourceScanerTests
     [MemberData(nameof(LineColumnTestData))]
     public void Advance_ShouldUpdateLineAndColumn(string input, int expectedLine, int expectedCol)
     {
-        SourceScaner scaner = new SourceScaner(input);
-        while (!scaner.IsEof())
+        SourceScanner scanner = new SourceScanner(input);
+        while (!scanner.IsEof())
         {
-            scaner.Advance();
+            scanner.Advance();
         }
-        Assert.Equal(expectedLine, scaner.Line);
-        Assert.Equal(expectedCol, scaner.Column);
+        Assert.Equal(expectedLine, scanner.Line);
+        Assert.Equal(expectedCol, scanner.Column);
     }
 
     [Fact]
     public void EmptyString_ShouldBeEofImmediately()
     {
-        SourceScaner scaner = new SourceScaner("");
-        Assert.True(scaner.IsEof());
-        Assert.Equal('\0', scaner.Peek(0));
+        SourceScanner scanner = new SourceScanner("");
+        Assert.True(scanner.IsEof());
+        Assert.Equal('\0', scanner.Peek(0));
     }
 }
