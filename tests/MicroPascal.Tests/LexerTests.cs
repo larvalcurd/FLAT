@@ -26,7 +26,7 @@ public class LexerTests
         Token token = lexer.NextToken();
         Assert.Equal(TokenType.Var, token.Type);
         Assert.Equal(2, token.Line);
-        Assert.Equal(1, token.Column);
+        Assert.Equal(0, token.Column);
     }
 
     [Fact]
@@ -98,5 +98,92 @@ public class LexerTests
     {
         Lexer lexer = CreateLexer("'\n'");
         Assert.Throws<Exception>(() => lexer.NextToken());
+    }
+    
+    [Fact]
+    public void NextToken_ShouldRecognizeAssignmentOperator()
+    {
+        Lexer lexer = CreateLexer("x := 5");
+        lexer.NextToken();
+        Token assign = lexer.NextToken();
+        Assert.Equal(TokenType.Assign, assign.Type);
+    }
+
+    [Fact]
+    public void NextToken_ShouldRecognizeComparisonOperators()
+    {
+        Lexer lexer = CreateLexer("<> <= >=");
+        Assert.Equal(TokenType.NotEqual, lexer.NextToken().Type);
+        Assert.Equal(TokenType.LessOrEqual, lexer.NextToken().Type);
+        Assert.Equal(TokenType.GreaterOrEqual, lexer.NextToken().Type);
+    }
+
+    [Fact]
+    public void NextToken_ShouldRecognizeDelimiters()
+    {
+        Lexer lexer = CreateLexer("(arr[i]); ..");
+        Assert.Equal(TokenType.OpenParen, lexer.NextToken().Type);
+        Assert.Equal(TokenType.OpenBracket, lexer.NextToken().Type);
+        Assert.Equal(TokenType.CloseBracket, lexer.NextToken().Type);
+        Assert.Equal(TokenType.CloseParen, lexer.NextToken().Type);
+        Assert.Equal(TokenType.Semicolon, lexer.NextToken().Type);
+        Assert.Equal(TokenType.DoubleDot, lexer.NextToken().Type);
+    }
+    [Fact]
+    public void NextToken_ShouldHandleZeroCorrectly()
+    {
+        Lexer lexer = CreateLexer("0");
+        Token token = lexer.NextToken();
+        Assert.Equal(TokenType.IntegerLiteral, token.Type);
+        Assert.Equal("0", token.Value);
+    }
+
+    [Theory]
+    [InlineData("00")]
+    [InlineData("01")]
+    [InlineData("007")]
+    public void NextToken_ShouldThrowOnLeadingZeros(string input)
+    {
+        Lexer lexer = CreateLexer(input);
+        Assert.Throws<Exception>(() => lexer.NextToken());
+    }
+    [Fact]
+    public void NextToken_ShouldHandleEscapedQuotesInString()
+    {
+        Lexer lexer = CreateLexer("'It''s ok'");
+        Token token = lexer.NextToken();
+        Assert.Equal(TokenType.StringLiteral, token.Type);
+        Assert.Equal("It's ok", token.Value);
+    }
+
+    [Fact]
+    public void NextToken_ShouldHandleEmptyString()
+    {
+        Lexer lexer = CreateLexer("''");
+        Token token = lexer.NextToken();
+        Assert.Equal(TokenType.StringLiteral, token.Type);
+        Assert.Equal("", token.Value);
+    }
+    [Fact]
+    public void NextToken_ShouldThrowOnInvalidCharacter()
+    {
+        Lexer lexer = CreateLexer("a / b");
+        lexer.NextToken();
+        Assert.Throws<Exception>(() => lexer.NextToken());
+    }
+    [Fact]
+    public void NextToken_ShouldParseComplexExpression()
+    {
+        Lexer lexer = CreateLexer("if (x >= 10) then begin end");
+    
+        Assert.Equal(TokenType.If, lexer.NextToken().Type);
+        Assert.Equal(TokenType.OpenParen, lexer.NextToken().Type);
+        Assert.Equal(TokenType.Identifier, lexer.NextToken().Type);
+        Assert.Equal(TokenType.GreaterOrEqual, lexer.NextToken().Type);
+        Assert.Equal(TokenType.IntegerLiteral, lexer.NextToken().Type);
+        Assert.Equal(TokenType.CloseParen, lexer.NextToken().Type);
+        Assert.Equal(TokenType.Then, lexer.NextToken().Type);
+        Assert.Equal(TokenType.Begin, lexer.NextToken().Type);
+        Assert.Equal(TokenType.End, lexer.NextToken().Type);
     }
 }

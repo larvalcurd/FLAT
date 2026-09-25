@@ -75,7 +75,7 @@ public class Lexer(string source)
             return ReadStringLiteral();
         }
 
-        if (SingleCharTokens.TryGetValue(current, out TokenType type))
+        if (SingleCharTokens.TryGetValue(current, out TokenType type) && !SingleCharTokens.TryGetValue(_sourceScanner.Peek(1), out TokenType typeNext))
         {
             _sourceScanner.Advance();
             return new Token(type, current.ToString(), _sourceScanner.Line, _sourceScanner.Column);
@@ -113,7 +113,7 @@ public class Lexer(string source)
         int startLine = _sourceScanner.Line;
         int startCol = _sourceScanner.Column;
         StringBuilder sb = new();
-        if (_sourceScanner.Peek() == '0')
+        if (_sourceScanner.Peek() == '0' && char.IsDigit(_sourceScanner.Peek(1)))
         {
             throw new Exception(
                 $"Lexical error: invalid numeric literal at {startLine}:{startCol}. " +
@@ -198,7 +198,7 @@ public class Lexer(string source)
         {
             case ':':
                 _sourceScanner.Advance();
-                if (_sourceScanner.Peek(1) == '=')
+                if (_sourceScanner.Peek() == '=')
                 {
                     _sourceScanner.Advance();
                     return new Token(TokenType.Assign, ":=", line, col);
@@ -207,13 +207,13 @@ public class Lexer(string source)
                 return new Token(TokenType.Colon, ":", line, col);
             case '<':
                 _sourceScanner.Advance();
-                if (_sourceScanner.Peek(1) == '>')
+                if (_sourceScanner.Peek() == '>')
                 {
                     _sourceScanner.Advance();
                     return new Token(TokenType.NotEqual, "<>", line, col);
                 }
 
-                if (_sourceScanner.Peek(1) == '=')
+                if (_sourceScanner.Peek() == '=')
                 {
                     _sourceScanner.Advance();
                     return new Token(TokenType.LessOrEqual, "<=", line, col);
@@ -222,7 +222,7 @@ public class Lexer(string source)
                 return new Token(TokenType.Less, "<", line, col);
             case '>':
                 _sourceScanner.Advance();
-                if (_sourceScanner.Peek(1) == '=')
+                if (_sourceScanner.Peek() == '=')
                 {
                     _sourceScanner.Advance();
                     return new Token(TokenType.GreaterOrEqual, ">=", line, col);
@@ -231,7 +231,7 @@ public class Lexer(string source)
                 return new Token(TokenType.Greater, ">", line, col);
             case '.':
                 _sourceScanner.Advance();
-                if (_sourceScanner.Peek(1) == '.')
+                if (_sourceScanner.Peek() == '.')
                 {
                     _sourceScanner.Advance();
                     return new Token(TokenType.DoubleDot, "..", line, col);
