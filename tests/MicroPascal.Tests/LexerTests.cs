@@ -57,8 +57,8 @@ public class LexerTests
     [Fact]
     public void NextToken_ShouldHandleNestedBracesAsContent()
     {
-        Lexer lexer = CreateLexer("{ a { b } } var");
-        LexerException ex = Assert.Throws<LexerException>(lexer.NextToken);
+        Lexer lexer = CreateLexer("{ a { b } } var"); 
+        Assert.Throws<LexerException>(lexer.NextToken);
     }
 
     [Fact]
@@ -240,6 +240,13 @@ public class LexerTests
         LexerException ex = Assert.Throws<LexerException>(() => lexer.NextToken());
         Assert.Equal(1, ex.Line);
         Assert.Equal(4, ex.Column);
+    }
+
+    [Fact]
+    public void NextToken_IdentifierIsNormalized()
+    {
+        Lexer lexer = CreateLexer("Value");
+        Assert.Equal("value", lexer.NextToken().Value);
     }
 
     [Fact]

@@ -101,10 +101,10 @@ public class Lexer(string source)
         string lowerText = text.ToLowerInvariant();
         if (Keywords.TryGetValue(lowerText, out TokenType type))
         {
-            return new Token(type, text, startLine, startCol);
+            return new Token(type, lowerText, startLine, startCol);
         }
 
-        return new Token(TokenType.Identifier, text, startLine, startCol);
+        return new Token(TokenType.Identifier, lowerText, startLine, startCol);
     }
 
     /// <summary>
