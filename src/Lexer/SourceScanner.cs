@@ -44,6 +44,12 @@ public class SourceScanner(string inputText)
                 _column = 0;
                 break;
             case '\r':
+                if (Peek() != '\n')
+                {
+                    _line++;
+                    _column = 0;
+                }
+
                 break;
             default:
                 _column++;

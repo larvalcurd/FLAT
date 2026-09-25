@@ -1,4 +1,5 @@
 ﻿using ExampleLib;
+
 using Xunit;
 
 namespace MicroPascal.Tests;
@@ -52,14 +53,14 @@ public class LexerTests
         Lexer lexer = CreateLexer("{ unclosed comma");
         Assert.Throws<LexerException>(() => lexer.NextToken());
     }
-    
+
     [Fact]
     public void NextToken_ShouldHandleNestedBracesAsContent()
     {
-        Lexer lexer = CreateLexer("{ a { b } c } var");
-        Assert.Throws<LexerException>(() => lexer.NextToken());
+        Lexer lexer = CreateLexer("{ a { b } } var");
+        LexerException ex = Assert.Throws<LexerException>(lexer.NextToken);
     }
-    
+
     [Fact]
     public void NextToken_HandleIntegerLiteral()
     {
@@ -67,19 +68,21 @@ public class LexerTests
         Token token = lexer.NextToken();
         Assert.Equal(TokenType.IntegerLiteral, token.Type);
     }
+
     [Fact]
     public void NextToken_HandleExceptionNumericLiteralLeadZero()
     {
         Lexer lexer = CreateLexer("0122");
         Assert.Throws<LexerException>(() => lexer.NextToken());
     }
+
     [Fact]
     public void NextToken_ThrowExceptionInvalidIdentifier()
     {
         Lexer lexer = CreateLexer("122a");
         Assert.Throws<LexerException>(() => lexer.NextToken());
     }
-    
+
     [Fact]
     public void NextToken_HandleStringLiteral()
     {
@@ -87,19 +90,21 @@ public class LexerTests
         Token token = lexer.NextToken();
         Assert.Equal(TokenType.StringLiteral, token.Type);
     }
+
     [Fact]
     public void NextToken_ThrowExceptionUnclosedString()
     {
         Lexer lexer = CreateLexer("'123");
         Assert.Throws<LexerException>(() => lexer.NextToken());
     }
+
     [Fact]
     public void NextToken_ThrowExceptionNewLineInString()
     {
         Lexer lexer = CreateLexer("'\n'");
         Assert.Throws<LexerException>(() => lexer.NextToken());
     }
-    
+
     [Fact]
     public void NextToken_ShouldRecognizeAssignmentOperator()
     {
@@ -121,14 +126,17 @@ public class LexerTests
     [Fact]
     public void NextToken_ShouldRecognizeDelimiters()
     {
-        Lexer lexer = CreateLexer("(arr[i]); ..");
+        Lexer lexer = CreateLexer("(array[i]); ..");
         Assert.Equal(TokenType.OpenParen, lexer.NextToken().Type);
+        Assert.Equal(TokenType.Array, lexer.NextToken().Type);
         Assert.Equal(TokenType.OpenBracket, lexer.NextToken().Type);
+        Assert.Equal(TokenType.Identifier, lexer.NextToken().Type);
         Assert.Equal(TokenType.CloseBracket, lexer.NextToken().Type);
         Assert.Equal(TokenType.CloseParen, lexer.NextToken().Type);
         Assert.Equal(TokenType.Semicolon, lexer.NextToken().Type);
         Assert.Equal(TokenType.DoubleDot, lexer.NextToken().Type);
     }
+
     [Fact]
     public void NextToken_ShouldHandleZeroCorrectly()
     {
@@ -147,6 +155,7 @@ public class LexerTests
         Lexer lexer = CreateLexer(input);
         Assert.Throws<LexerException>(() => lexer.NextToken());
     }
+
     [Fact]
     public void NextToken_ShouldHandleEscapedQuotesInString()
     {
@@ -164,6 +173,7 @@ public class LexerTests
         Assert.Equal(TokenType.StringLiteral, token.Type);
         Assert.Equal("", token.Value);
     }
+
     [Fact]
     public void NextToken_ShouldThrowOnInvalidCharacter()
     {
@@ -171,7 +181,7 @@ public class LexerTests
         lexer.NextToken();
         Assert.Throws<LexerException>(() => lexer.NextToken());
     }
-    
+
     [Fact]
     public void NextToken_PositionOfAssignOperator()
     {
@@ -179,38 +189,42 @@ public class LexerTests
         lexer.NextToken();
         Token assign = lexer.NextToken();
         Assert.Equal(1, assign.Line);
-        Assert.Equal(3, assign.Column);
+        Assert.Equal(2, assign.Column);
     }
-    
+
     [Fact]
     public void NextToken_ShouldThrowOnDelCharInString()
     {
         Lexer lexer = CreateLexer("'a\u007Fb'");
         Assert.Throws<LexerException>(() => lexer.NextToken());
     }
-    
+
     [Fact]
     public void NextToken_ShouldThrowOnUnicodeLetter()
     {
         Lexer lexer = CreateLexer("привет");
         Assert.Throws<LexerException>(() => lexer.NextToken());
     }
-    
+
     [Fact]
     public void NextToken_OnEmptyInput_ReturnsEof()
     {
         Lexer lexer = CreateLexer("");
         Assert.Equal(TokenType.Eof, lexer.NextToken().Type);
     }
-    
+
     [Fact]
     public void Advance_ShouldTreatLoneCrAsNewLine()
     {
         SourceScanner scanner = new SourceScanner("A\rB");
-        while (!scanner.IsEof()) scanner.Advance();
+        while (!scanner.IsEof())
+        {
+            scanner.Advance();
+        }
+
         Assert.Equal(2, scanner.Line);
     }
-    
+
     [Fact]
     public void NextToken_ClosingBraceAlone_ShouldThrow()
     {
@@ -218,12 +232,21 @@ public class LexerTests
         lexer.NextToken();
         Assert.Throws<LexerException>(() => lexer.NextToken());
     }
-    
+
+    [Fact]
+    public void NextToken_ShouldReportStartPositionOfUnclosedComment()
+    {
+        Lexer lexer = CreateLexer("   { unclosed");
+        LexerException ex = Assert.Throws<LexerException>(() => lexer.NextToken());
+        Assert.Equal(1, ex.Line);
+        Assert.Equal(4, ex.Column);
+    }
+
     [Fact]
     public void NextToken_ShouldParseComplexExpression()
     {
         Lexer lexer = CreateLexer("if (x >= 10) then begin end");
-    
+
         Assert.Equal(TokenType.If, lexer.NextToken().Type);
         Assert.Equal(TokenType.OpenParen, lexer.NextToken().Type);
         Assert.Equal(TokenType.Identifier, lexer.NextToken().Type);

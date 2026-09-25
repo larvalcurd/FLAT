@@ -1,4 +1,5 @@
 ﻿using ExampleLib;
+
 using Xunit;
 
 namespace MicroPascal.Tests;
@@ -46,6 +47,7 @@ public class SourceScannerTests
         {
             scanner.Advance();
         }
+
         Assert.Equal(expectedLine, scanner.Line);
         Assert.Equal(expectedCol, scanner.Column);
     }
