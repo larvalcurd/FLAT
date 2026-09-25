@@ -1,14 +1,9 @@
 ﻿namespace ExampleLib;
 
-public class LexerException : Exception
+public class LexerException(string message, int line, int column)
+    : Exception($"Lexical error at {line}:{column}: {message}")
 {
-    public int Line { get; }
-    public int Column { get; }
+    public int Line { get; } = line;
 
-    public LexerException(string message, int line, int column)
-        : base($"Lexical error at {line}:{column}: {message}")
-    {
-        Line = line;
-        Column = column;
-    }
+    public int Column { get; } = column;
 }
