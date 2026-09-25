@@ -115,9 +115,10 @@ public class Lexer(string source)
         StringBuilder sb = new();
         if (_sourceScanner.Peek() == '0' && char.IsDigit(_sourceScanner.Peek(1)))
         {
-            throw new Exception(
-                $"Lexical error: invalid numeric literal at {startLine}:{startCol}. " +
-                $"Identifier cannot start with a 0.");
+            throw new LexerException(
+                $"Lexical error: invalid numeric literal at {startLine}:{startCol}. " + $"Identifier cannot start with a 0.",
+                startLine,
+                startCol);
         }
 
         while (!_sourceScanner.IsEof() && char.IsDigit(_sourceScanner.Peek()))
@@ -130,9 +131,9 @@ public class Lexer(string source)
             char nextChar = _sourceScanner.Peek();
             if (char.IsLetter(nextChar) || nextChar == '_')
             {
-                throw new Exception(
+                throw new LexerException(
                     $"Lexical error: invalid numeric literal at {startLine}:{startCol}. " +
-                    $"Identifier cannot start with a digit.");
+                    $"Identifier cannot start with a digit.", startLine, startCol);
             }
         }
 
@@ -170,21 +171,21 @@ public class Lexer(string source)
 
             if (c == '\n' || c == '\r')
             {
-                throw new Exception(
-                    $"Lexical error: unclosed string literal starting at {startLine}:{startCol}");
+                throw new LexerException(
+                    $"Lexical error: unclosed string literal starting at {startLine}:{startCol}", startLine, startCol);
             }
 
             if (IsInvalidControlChar(c))
             {
-                throw new Exception(
-                    $"Lexical error: invalid control character in string literal at {_sourceScanner.Line}:{_sourceScanner.Column}");
+                throw new LexerException(
+                    $"Lexical error: invalid control character in string literal at {_sourceScanner.Line}:{_sourceScanner.Column}", startLine, startCol);
             }
 
             sb.Append(_sourceScanner.Advance());
         }
 
-        throw new Exception(
-            $"Lexical error: unclosed string literal starting at {startLine}:{startCol}");
+        throw new LexerException(
+            $"Lexical error: unclosed string literal starting at {startLine}:{startCol}", startLine, startCol);
     }
 
     /// <summary>
@@ -239,7 +240,7 @@ public class Lexer(string source)
 
                 return new Token(TokenType.Dot, ".", line, col);
             default:
-                throw new Exception($"Lexical error: unexpected character '{c}' at {line}:{col}");
+                throw new LexerException($"Lexical error: unexpected character '{c}' at {line}:{col}", line, col);
         }
     }
 
@@ -291,8 +292,8 @@ public class Lexer(string source)
 
             if (IsInvalidControlChar(commentChar))
             {
-                throw new Exception(
-                    $"Lexical error: invalid control character in comment at {_sourceScanner.Line}:{_sourceScanner.Column}");
+                throw new LexerException(
+                    $"Lexical error: invalid control character in comment at {_sourceScanner.Line}:{_sourceScanner.Column}", _sourceScanner.Line, _sourceScanner.Column);
             }
 
             _sourceScanner.Advance();
@@ -317,13 +318,13 @@ public class Lexer(string source)
 
             if (IsInvalidControlChar(commentChar))
             {
-                throw new Exception($"Lexical error: invalid control character in comment at {_sourceScanner.Line}:{_sourceScanner.Column}");
+                throw new LexerException($"Lexical error: invalid control character in comment at {_sourceScanner.Line}:{_sourceScanner.Column}", _sourceScanner.Line, _sourceScanner.Column);
             }
         }
 
         if (!closed)
         {
-            throw new Exception($"Lexical error: unclosed block comment starting at {_sourceScanner.Line}:{_sourceScanner.Column}");
+            throw new LexerException($"Lexical error: unclosed block comment starting at {_sourceScanner.Line}:{_sourceScanner.Column}", _sourceScanner.Line, _sourceScanner.Column);
         }
     }
 
