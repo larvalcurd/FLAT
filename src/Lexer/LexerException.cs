@@ -1,9 +1,10 @@
 ﻿namespace ExampleLib;
 
-public class LexerException(string message, int line, int column)
-    : Exception($"Lexical error at {line}:{column}: {message}")
+public class LexerException(string message, SourcePosition position) : Exception($"{message} at {position}")
 {
-    public int Line { get; } = line;
+    public SourcePosition Position { get; } = position;
 
-    public int Column { get; } = column;
+    public int Line => Position.Line;
+
+    public int Column => Position.Column;
 }

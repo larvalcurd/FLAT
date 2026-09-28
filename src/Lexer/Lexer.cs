@@ -56,7 +56,7 @@ public class Lexer(string source)
         SkipWhitespaceAndComments();
         if (_sourceScanner.IsEof())
         {
-            return new Token(TokenType.Eof, "", _sourceScanner.Line, _sourceScanner.Column);
+            return new Token(TokenType.Eof, "", _sourceScanner.CurrentPosition);
         }
 
         char current = _sourceScanner.Peek();
@@ -77,10 +77,9 @@ public class Lexer(string source)
 
         if (SingleCharTokens.TryGetValue(current, out TokenType type))
         {
-            int line = _sourceScanner.Line;
-            int col = _sourceScanner.Column;
+            SourcePosition pos = _sourceScanner.CurrentPosition;
             _sourceScanner.Advance();
-            return new Token(type, current.ToString(), line, col);
+            return new Token(type, current.ToString(), pos);
         }
 
         return ReadComplexOperator(current);
@@ -88,8 +87,7 @@ public class Lexer(string source)
 
     private Token ReadIdentifierOrKeyword()
     {
-        int startLine = _sourceScanner.Line;
-        int startCol = _sourceScanner.Column;
+        SourcePosition startPos = _sourceScanner.CurrentPosition;
         StringBuilder sb = new();
         while (!_sourceScanner.IsEof() && (char.IsAsciiLetter(_sourceScanner.Peek()) ||
                                            char.IsAsciiDigit(_sourceScanner.Peek()) || _sourceScanner.Peek() == '_'))
@@ -102,10 +100,10 @@ public class Lexer(string source)
         string lowerText = text.ToLowerInvariant();
         if (Keywords.TryGetValue(lowerText, out TokenType type))
         {
-            return new Token(type, lowerText, startLine, startCol);
+            return new Token(type, lowerText, startPos);
         }
 
-        return new Token(TokenType.Identifier, lowerText, startLine, startCol);
+        return new Token(TokenType.Identifier, lowerText, startPos);
     }
 
     /// <summary>
@@ -113,16 +111,12 @@ public class Lexer(string source)
     /// </summary>
     private Token ReadNumericLiteral()
     {
-        int startLine = _sourceScanner.Line;
-        int startCol = _sourceScanner.Column;
+        SourcePosition startPos = _sourceScanner.CurrentPosition;
         StringBuilder sb = new();
         if (_sourceScanner.Peek() == '0' && char.IsAsciiDigit(_sourceScanner.Peek(1)))
         {
             throw new LexerException(
-                $"Lexical error: invalid numeric literal at {startLine}:{startCol}. " +
-                $"Identifier cannot start with a 0.",
-                startLine,
-                startCol);
+                $"Lexical error: invalid numeric literal. Identifier cannot start with a 0.", startPos);
         }
 
         while (!_sourceScanner.IsEof() && char.IsAsciiDigit(_sourceScanner.Peek()))
@@ -133,20 +127,19 @@ public class Lexer(string source)
 
         if (_sourceScanner.IsEof())
         {
-            return new Token(TokenType.IntegerLiteral, sb.ToString(), startLine, startCol);
+            return new Token(TokenType.IntegerLiteral, sb.ToString(), startPos);
         }
 
         char nextChar = _sourceScanner.Peek();
         if (char.IsAsciiLetter(nextChar) || nextChar == '_')
         {
             throw new LexerException(
-                $"Lexical error: invalid numeric literal at {startLine}:{startCol}. " +
+                $"Lexical error: invalid numeric literal. " +
                 $"Identifier cannot start with a digit.",
-                startLine,
-                startCol);
+                startPos);
         }
 
-        return new Token(TokenType.IntegerLiteral, sb.ToString(), startLine, startCol);
+        return new Token(TokenType.IntegerLiteral, sb.ToString(), startPos);
     }
 
     /// <summary>
@@ -154,8 +147,7 @@ public class Lexer(string source)
     /// </summary>
     private Token ReadStringLiteral()
     {
-        int startLine = _sourceScanner.Line;
-        int startCol = _sourceScanner.Column;
+        SourcePosition startPos = _sourceScanner.CurrentPosition;
         StringBuilder sb = new();
 
         _sourceScanner.Advance();
@@ -175,21 +167,20 @@ public class Lexer(string source)
                 }
 
                 _sourceScanner.Advance();
-                return new Token(TokenType.StringLiteral, sb.ToString(), startLine, startCol);
+                return new Token(TokenType.StringLiteral, sb.ToString(), startPos);
             }
 
             if (c == '\n' || c == '\r')
             {
                 throw new LexerException(
-                    $"Lexical error: unclosed string literal starting at {startLine}:{startCol}", startLine, startCol);
+                    $"Lexical error: unclosed string literal ", startPos);
             }
 
             if (IsInvalidControlChar(c))
             {
                 throw new LexerException(
-                    $"Lexical error: invalid control character in string literal at {_sourceScanner.Line}:{_sourceScanner.Column}",
-                    startLine,
-                    startCol);
+                    $"Lexical error: invalid control character in string literal.",
+                    _sourceScanner.CurrentPosition);
             }
 
             sb.Append(_sourceScanner.Peek());
@@ -197,7 +188,7 @@ public class Lexer(string source)
         }
 
         throw new LexerException(
-            $"Lexical error: unclosed string literal starting at {startLine}:{startCol}", startLine, startCol);
+            $"Lexical error: unclosed string literal.", startPos);
     }
 
     /// <summary>
@@ -205,8 +196,7 @@ public class Lexer(string source)
     /// </summary>
     private Token ReadComplexOperator(char c)
     {
-        int line = _sourceScanner.Line;
-        int col = _sourceScanner.Column;
+        SourcePosition startPos = _sourceScanner.CurrentPosition;
         switch (c)
         {
             case ':':
@@ -214,45 +204,45 @@ public class Lexer(string source)
                 if (_sourceScanner.Peek() == '=')
                 {
                     _sourceScanner.Advance();
-                    return new Token(TokenType.Assign, ":=", line, col);
+                    return new Token(TokenType.Assign, ":=", startPos);
                 }
 
-                return new Token(TokenType.Colon, ":", line, col);
+                return new Token(TokenType.Colon, ":", startPos);
             case '<':
                 _sourceScanner.Advance();
                 if (_sourceScanner.Peek() == '>')
                 {
                     _sourceScanner.Advance();
-                    return new Token(TokenType.NotEqual, "<>", line, col);
+                    return new Token(TokenType.NotEqual, "<>", startPos);
                 }
 
                 if (_sourceScanner.Peek() == '=')
                 {
                     _sourceScanner.Advance();
-                    return new Token(TokenType.LessOrEqual, "<=", line, col);
+                    return new Token(TokenType.LessOrEqual, "<=", startPos);
                 }
 
-                return new Token(TokenType.Less, "<", line, col);
+                return new Token(TokenType.Less, "<", startPos);
             case '>':
                 _sourceScanner.Advance();
                 if (_sourceScanner.Peek() == '=')
                 {
                     _sourceScanner.Advance();
-                    return new Token(TokenType.GreaterOrEqual, ">=", line, col);
+                    return new Token(TokenType.GreaterOrEqual, ">=", startPos);
                 }
 
-                return new Token(TokenType.Greater, ">", line, col);
+                return new Token(TokenType.Greater, ">", startPos);
             case '.':
                 _sourceScanner.Advance();
                 if (_sourceScanner.Peek() == '.')
                 {
                     _sourceScanner.Advance();
-                    return new Token(TokenType.DoubleDot, "..", line, col);
+                    return new Token(TokenType.DoubleDot, "..", startPos);
                 }
 
-                return new Token(TokenType.Dot, ".", line, col);
+                return new Token(TokenType.Dot, ".", startPos);
             default:
-                throw new LexerException($"Lexical error: unexpected character '{c}' at {line}:{col}", line, col);
+                throw new LexerException($"Lexical error: unexpected character '{c}'", startPos);
         }
     }
 
@@ -305,9 +295,8 @@ public class Lexer(string source)
             if (IsInvalidControlChar(commentChar))
             {
                 throw new LexerException(
-                    $"Lexical error: invalid control character in comment at {_sourceScanner.Line}:{_sourceScanner.Column}",
-                    _sourceScanner.Line,
-                    _sourceScanner.Column);
+                    $"Lexical error: invalid control character in comment",
+                    _sourceScanner.CurrentPosition);
             }
 
             _sourceScanner.Advance();
@@ -319,8 +308,7 @@ public class Lexer(string source)
     /// </summary>
     private void SkipMultilineComment()
     {
-        int line = _sourceScanner.Line;
-        int col = _sourceScanner.Column;
+        SourcePosition startPos = _sourceScanner.CurrentPosition;
         bool closed = false;
         while (!_sourceScanner.IsEof())
         {
@@ -336,18 +324,16 @@ public class Lexer(string source)
             if (IsInvalidControlChar(commentChar))
             {
                 throw new LexerException(
-                    $"Lexical error: invalid control character in comment at {_sourceScanner.Line}:{_sourceScanner.Column}",
-                    _sourceScanner.Line,
-                    _sourceScanner.Column);
+                    $"Lexical error: invalid control character in comment. ",
+                    startPos);
             }
         }
 
         if (!closed)
         {
             throw new LexerException(
-                $"Lexical error: unclosed block comment starting at {line}:{col}",
-                line,
-                col);
+                $"Lexical error: unclosed block comment starting. ",
+                startPos);
         }
     }
 

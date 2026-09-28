@@ -15,6 +15,8 @@ public class SourceScanner(string inputText)
 
     public int Column => _column;
 
+    public SourcePosition CurrentPosition => new(_line, _column);
+
     /// <summary>
     /// Функция позволяет увидеть символ, который находится на расстоянии от текущего положения каретки,
     /// без смещения ее позиции. Без передачи параметра смотрит текущий символ.

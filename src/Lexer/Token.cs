@@ -1,12 +1,14 @@
 ﻿namespace ExampleLib;
 
-public class Token(TokenType type, string value, int line, int column)
+public class Token(TokenType type, string value, SourcePosition position)
 {
     public TokenType Type { get; } = type;
 
     public string Value { get; } = value;
 
-    public int Line { get; } = line;
+    public SourcePosition Position { get; } = position;
 
-    public int Column { get; } = column;
+    public int Line => Position.Line;
+
+    public int Column => Position.Column;
 }
