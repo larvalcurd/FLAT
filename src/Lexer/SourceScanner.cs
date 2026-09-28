@@ -9,6 +9,12 @@ public class SourceScanner(string inputText)
     private int _line = 1;
     private int _column;
 
+    public int Position { get; private set; }
+
+    public int Line => _line;
+
+    public int Column => _column;
+
     /// <summary>
     /// Функция позволяет увидеть символ, который находится на расстоянии от текущего положения каретки,
     /// без смещения ее позиции. Без передачи параметра смотрит текущий символ.
@@ -19,6 +25,8 @@ public class SourceScanner(string inputText)
     /// на offset от текущей позиции каретки</returns>
     public char Peek(int offset = 0)
     {
+        ArgumentOutOfRangeException.ThrowIfNegative(offset);
+
         int pos = Position + offset;
         return pos < inputText.Length ? inputText[pos] : '\0';
     }
@@ -34,8 +42,7 @@ public class SourceScanner(string inputText)
             return '\0';
         }
 
-        char c = inputText[Position];
-        Position++;
+        char c = inputText[Position++];
 
         switch (c)
         {
@@ -64,10 +71,4 @@ public class SourceScanner(string inputText)
     /// </summary>
     /// <returns>Возвращает флаг, указывающий на факт возвращения или нет</returns>
     public bool IsEof() => Position >= inputText.Length;
-
-    public int Position { get; private set; } = 0;
-
-    public int Line => _line;
-
-    public int Column => _column;
 }

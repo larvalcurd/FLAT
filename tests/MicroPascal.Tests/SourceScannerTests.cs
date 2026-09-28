@@ -4,6 +4,7 @@ using Xunit;
 
 namespace MicroPascal.Tests;
 
+// TODO: посоветоваться, касаемо позиции каретки после переноса с одной строки на другую, то есть наличия пустых строк в конце файла.
 public class SourceScannerTests
 {
     [Fact]
@@ -33,7 +34,6 @@ public class SourceScannerTests
         data.Add("ABC", 1, 3);
         data.Add("A\nB", 2, 1);
         data.Add("A\r\nB", 2, 1);
-        // TODO: посоветоваться, касаемо позиции каретки после переноса с одной строки на другую, то есть наличия пустых строк в конце файла.
         data.Add("\n\n", 3, 0);
         return data;
     }

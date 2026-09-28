@@ -6,11 +6,6 @@ namespace MicroPascal.Tests;
 
 public class LexerTests
 {
-    private static Lexer CreateLexer(string source)
-    {
-        return new Lexer(source);
-    }
-
     [Fact]
     public void NextToken_ShouldSkipSpacesAndReturnKeyword()
     {
@@ -57,7 +52,7 @@ public class LexerTests
     [Fact]
     public void NextToken_ShouldHandleNestedBracesAsContent()
     {
-        Lexer lexer = CreateLexer("{ a { b } } var"); 
+        Lexer lexer = CreateLexer("{ a { b } } var");
         Assert.Throws<LexerException>(lexer.NextToken);
     }
 
@@ -263,5 +258,10 @@ public class LexerTests
         Assert.Equal(TokenType.Then, lexer.NextToken().Type);
         Assert.Equal(TokenType.Begin, lexer.NextToken().Type);
         Assert.Equal(TokenType.End, lexer.NextToken().Type);
+    }
+
+    private static Lexer CreateLexer(string source)
+    {
+        return new Lexer(source);
     }
 }
