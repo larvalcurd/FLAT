@@ -35,11 +35,11 @@ public class SourceScanner(string inputText)
     /// Сдвигает позицию чтения вперед на один символ и возвращает его.
     /// Обновляет счетчики строк и столбцов.
     /// </summary>
-    public char Advance()
+    public void Advance()
     {
         if (IsEof())
         {
-            return '\0';
+            return;
         }
 
         char c = inputText[Position++];
@@ -62,8 +62,6 @@ public class SourceScanner(string inputText)
                 _column++;
                 break;
         }
-
-        return c;
     }
 
     /// <summary>

@@ -94,7 +94,8 @@ public class Lexer(string source)
         while (!_sourceScanner.IsEof() && (char.IsAsciiLetter(_sourceScanner.Peek()) ||
                                            char.IsAsciiDigit(_sourceScanner.Peek()) || _sourceScanner.Peek() == '_'))
         {
-            sb.Append(_sourceScanner.Advance());
+            sb.Append(_sourceScanner.Peek());
+            _sourceScanner.Advance();
         }
 
         string text = sb.ToString();
@@ -126,7 +127,8 @@ public class Lexer(string source)
 
         while (!_sourceScanner.IsEof() && char.IsAsciiDigit(_sourceScanner.Peek()))
         {
-            sb.Append(_sourceScanner.Advance());
+            sb.Append(_sourceScanner.Peek());
+            _sourceScanner.Advance();
         }
 
         if (_sourceScanner.IsEof())
@@ -190,7 +192,8 @@ public class Lexer(string source)
                     startCol);
             }
 
-            sb.Append(_sourceScanner.Advance());
+            sb.Append(_sourceScanner.Peek());
+            _sourceScanner.Advance();
         }
 
         throw new LexerException(
@@ -321,7 +324,8 @@ public class Lexer(string source)
         bool closed = false;
         while (!_sourceScanner.IsEof())
         {
-            char commentChar = _sourceScanner.Advance();
+            char commentChar = _sourceScanner.Peek();
+            _sourceScanner.Advance();
 
             if (commentChar == '}')
             {

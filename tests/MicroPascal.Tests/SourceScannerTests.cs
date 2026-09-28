@@ -11,7 +11,7 @@ public class SourceScannerTests
     public void Advance_ShouldReturnFirstCharacter()
     {
         SourceScanner scanner = new SourceScanner("Hello");
-        char result = scanner.Advance();
+        char result = scanner.Peek();
         Assert.Equal('H', result);
     }
 
