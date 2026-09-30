@@ -12,7 +12,7 @@ public sealed class TempFile : IDisposable
         Path = path;
     }
 
-    public string Path { get; }
+    private string Path { get; }
 
     public static TempFile Create(string contents)
     {
