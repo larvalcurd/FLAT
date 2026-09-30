@@ -6,16 +6,13 @@
 /// </summary>
 public class SourceScanner(string inputText)
 {
-    private int _line = 1;
-    private int _column;
-
     public int Position { get; private set; }
 
-    public int Line => _line;
+    public int Line { get; private set; } = 1;
 
-    public int Column => _column;
+    public int Column { get; private set; }
 
-    public SourcePosition CurrentPosition => new(_line, _column);
+    public SourcePosition CurrentPosition => new(Line, Column);
 
     /// <summary>
     /// Функция позволяет увидеть символ, который находится на расстоянии от текущего положения каретки,
@@ -49,19 +46,19 @@ public class SourceScanner(string inputText)
         switch (c)
         {
             case '\n':
-                _line++;
-                _column = 0;
+                Line++;
+                Column = 0;
                 break;
             case '\r':
                 if (Peek() != '\n')
                 {
-                    _line++;
-                    _column = 0;
+                    Line++;
+                    Column = 0;
                 }
 
                 break;
             default:
-                _column++;
+                Column++;
                 break;
         }
     }
