@@ -1,20 +1,10 @@
-﻿using ExampleLib;
+﻿using Xunit;
 
-using Xunit;
-
-namespace MicroPascal.Tests;
+namespace ExampleLib.UnitTests;
 
 // TODO: посоветоваться, касаемо позиции каретки после переноса с одной строки на другую, то есть наличия пустых строк в конце файла.
 public class SourceScannerTests
 {
-    [Fact]
-    public void Advance_ShouldReturnFirstCharacter()
-    {
-        SourceScanner scanner = new SourceScanner("Hello");
-        char result = scanner.Peek();
-        Assert.Equal('H', result);
-    }
-
     [Fact]
     public void Peek_ShouldNotChangePosition()
     {
@@ -30,11 +20,16 @@ public class SourceScannerTests
 
     public static TheoryData<string, int, int> LineColumnTestData()
     {
-        TheoryData<string, int, int> data = new TheoryData<string, int, int>();
-        data.Add("ABC", 1, 3);
-        data.Add("A\nB", 2, 1);
-        data.Add("A\r\nB", 2, 1);
-        data.Add("\n\n", 3, 0);
+        TheoryData<string, int, int> data = new TheoryData<string, int, int>
+        {
+            { "ABC", 1, 3 },
+            { "A\nB", 2, 1 },
+            { "A\r\nB", 2, 1 },
+            { "\n\n", 3, 0 },
+            { "\r", 2, 0 },
+            { "\n\r", 3, 0 },
+            { "\t\f ", 1, 3 },
+        };
         return data;
     }
 
@@ -58,5 +53,49 @@ public class SourceScannerTests
         SourceScanner scanner = new SourceScanner("");
         Assert.True(scanner.IsEof());
         Assert.Equal('\0', scanner.Peek(0));
+    }
+
+    [Fact]
+    public void Peek_BeyondEnd_ReturnsNul()
+    {
+        SourceScanner scanner = new SourceScanner("ab");
+
+        Assert.Equal('\0', scanner.Peek(2));
+        Assert.Equal('\0', scanner.Peek(100));
+    }
+
+    [Fact]
+    public void Peek_NegativeOffset_Throws()
+    {
+        SourceScanner scanner = new SourceScanner("ab");
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => scanner.Peek(-1));
+    }
+
+    [Fact]
+    public void Advance_MovesPositionAndColumn()
+    {
+        SourceScanner scanner = new SourceScanner("abc");
+
+        scanner.Advance();
+
+        Assert.Equal(1, scanner.Position);
+        Assert.Equal('b', scanner.Peek());
+        Assert.Equal(new SourcePosition(1, 1), scanner.CurrentPosition);
+        Assert.False(scanner.IsEof());
+    }
+
+    [Fact]
+    public void Advance_AtEof_DoesNothing()
+    {
+        SourceScanner scanner = new SourceScanner("a");
+        scanner.Advance();
+
+        scanner.Advance();
+        scanner.Advance();
+
+        Assert.True(scanner.IsEof());
+        Assert.Equal(1, scanner.Position);
+        Assert.Equal(new SourcePosition(1, 1), scanner.CurrentPosition);
     }
 }
