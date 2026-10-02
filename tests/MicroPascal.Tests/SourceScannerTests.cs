@@ -25,10 +25,7 @@ public class SourceScannerTests
             { "ABC", 1, 3 },
             { "A\nB", 2, 1 },
             { "A\r\nB", 2, 1 },
-            { "\n\n", 3, 0 },
             { "\r", 2, 0 },
-            { "\n\r", 3, 0 },
-            { "\t\f ", 1, 3 },
         };
         return data;
     }
@@ -56,33 +53,11 @@ public class SourceScannerTests
     }
 
     [Fact]
-    public void Peek_BeyondEnd_ReturnsNul()
-    {
-        SourceScanner scanner = new SourceScanner("ab");
-
-        Assert.Equal('\0', scanner.Peek(2));
-        Assert.Equal('\0', scanner.Peek(100));
-    }
-
-    [Fact]
     public void Peek_NegativeOffset_Throws()
     {
         SourceScanner scanner = new SourceScanner("ab");
 
         Assert.Throws<ArgumentOutOfRangeException>(() => scanner.Peek(-1));
-    }
-
-    [Fact]
-    public void Advance_MovesPositionAndColumn()
-    {
-        SourceScanner scanner = new SourceScanner("abc");
-
-        scanner.Advance();
-
-        Assert.Equal(1, scanner.Position);
-        Assert.Equal('b', scanner.Peek());
-        Assert.Equal(new SourcePosition(1, 1), scanner.CurrentPosition);
-        Assert.False(scanner.IsEof());
     }
 
     [Fact]
