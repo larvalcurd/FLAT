@@ -10,6 +10,7 @@ public class Lexer(string source)
     {
         { "program", TokenType.Program },
         { "var", TokenType.Var },
+        { "const", TokenType.Const },
         { "procedure", TokenType.Procedure },
         { "function", TokenType.Function },
         { "integer", TokenType.Integer },
@@ -26,7 +27,9 @@ public class Lexer(string source)
         { "while", TokenType.While },
         { "do", TokenType.Do },
         { "write", TokenType.Write },
+        { "writeln", TokenType.Writeln },
         { "read", TokenType.Read },
+        { "readln", TokenType.Readln },
         { "true", TokenType.True },
         { "false", TokenType.False },
         { "and", TokenType.And },
