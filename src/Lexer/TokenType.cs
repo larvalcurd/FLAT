@@ -6,7 +6,6 @@
 public enum TokenType
 {
     Eof,
-    Unknown,
     Program,
     Var,
     Const,
