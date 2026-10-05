@@ -1,4 +1,4 @@
-﻿namespace ExampleLib;
+﻿namespace Lexer;
 
 /// <summary>
 /// Позиция в исходном тексте: строка, столбец.

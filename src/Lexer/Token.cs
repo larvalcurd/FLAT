@@ -1,4 +1,4 @@
-﻿namespace ExampleLib;
+﻿namespace Lexer;
 
 public class Token(TokenType type, string value, SourcePosition position)
 {

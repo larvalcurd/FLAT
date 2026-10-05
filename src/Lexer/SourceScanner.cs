@@ -1,4 +1,4 @@
-﻿namespace ExampleLib;
+﻿namespace Lexer;
 
 /// <summary>
 /// Класс TextHandler, отвечает за считывание и хранение текста из файла,

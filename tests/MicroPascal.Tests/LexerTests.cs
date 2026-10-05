@@ -1,6 +1,6 @@
 ﻿using Xunit;
 
-namespace ExampleLib.UnitTests;
+namespace Lexer.UnitTests;
 
 public class LexerTests
 {

@@ -1,6 +1,6 @@
 ﻿using Xunit;
 
-namespace ExampleLib.UnitTests;
+namespace Lexer.UnitTests;
 
 // TODO: посоветоваться, касаемо позиции каретки после переноса с одной строки на другую, то есть наличия пустых строк в конце файла.
 public class SourceScannerTests

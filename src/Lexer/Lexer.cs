@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace ExampleLib;
+namespace Lexer;
 
 public class Lexer(string source)
 {

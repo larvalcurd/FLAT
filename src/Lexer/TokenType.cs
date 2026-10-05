@@ -1,4 +1,4 @@
-﻿namespace ExampleLib;
+﻿namespace Lexer;
 
 /// <summary>
 /// Виды токенов языка MicroPascal.
