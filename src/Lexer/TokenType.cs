@@ -1,7 +1,7 @@
 ﻿namespace ExampleLib;
 
 /// <summary>
-/// Виды токенов языка MiniPascal.
+/// Виды токенов языка MicroPascal.
 /// </summary>
 public enum TokenType
 {
