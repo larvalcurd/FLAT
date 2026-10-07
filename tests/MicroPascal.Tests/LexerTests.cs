@@ -4,7 +4,7 @@ namespace Lexer.UnitTests;
 
 public class LexerTests
 {
-    public static TheoryData<string, int, int> GetSourcesWithInvalidCharacters()
+    public static TheoryData<string, int, int> InvalidCharacterCases()
     {
         return new TheoryData<string, int, int>
         {
@@ -18,15 +18,15 @@ public class LexerTests
     }
 
     [Theory]
-    [MemberData(nameof(GetSourcesWithInvalidCharacters))]
-    public void NextToken_InvalidCharacter_ThrowsWithCharacterPosition(string sourceText, int expectedLine, int expectedColumn)
+    [MemberData(nameof(InvalidCharacterCases))]
+    public void NextToken_InvalidCharacter_Throws(string sourceText, int expectedLine, int expectedColumn)
     {
         LexerException ex = Assert.Throws<LexerException>(() => ScanTokens(sourceText));
 
         Assert.Equal(new SourcePosition(expectedLine, expectedColumn), ex.Position);
     }
 
-    public static TheoryData<string, string> GetValidIdentifiers()
+    public static TheoryData<string, string> IdentifierCases()
     {
         return new TheoryData<string, string>
         {
@@ -41,8 +41,8 @@ public class LexerTests
     }
 
     [Theory]
-    [MemberData(nameof(GetValidIdentifiers))]
-    public void NextToken_ValidIdentifier_ReturnsIdentifierInLowerCase(string identifierText, string expectedValue)
+    [MemberData(nameof(IdentifierCases))]
+    public void NextToken_Identifier_ReturnsLowercased(string identifierText, string expectedValue)
     {
         List<Token> tokens = ScanTokens(identifierText);
 
@@ -52,25 +52,21 @@ public class LexerTests
         Assert.Equal(TokenType.Eof, tokens[1].Type);
     }
 
-    public static TheoryData<string, int, int> GetInvalidIdentifiers()
+    public static TheoryData<string, int, int> InvalidIdentifierCases()
     {
-        return new TheoryData<string, int, int>
-        {
-            { "1a", 1, 0 },
-            { "абв", 1, 0 },
-        };
+        return new TheoryData<string, int, int> { { "1a", 1, 0 }, { "абв", 1, 0 }, };
     }
 
     [Theory]
-    [MemberData(nameof(GetInvalidIdentifiers))]
-    public void NextToken_InvalidIdentifier_ThrowsWithErrorPosition(string sourceText, int expectedLine, int expectedColumn)
+    [MemberData(nameof(InvalidIdentifierCases))]
+    public void NextToken_InvalidIdentifier_Throws(string sourceText, int expectedLine, int expectedColumn)
     {
         LexerException ex = Assert.Throws<LexerException>(() => ScanTokens(sourceText));
 
         Assert.Equal(new SourcePosition(expectedLine, expectedColumn), ex.Position);
     }
 
-    public static TheoryData<string, TokenType> GetAllKeywords()
+    public static TheoryData<string, TokenType> KeywordCases()
     {
         return new TheoryData<string, TokenType>
         {
@@ -107,8 +103,8 @@ public class LexerTests
     }
 
     [Theory]
-    [MemberData(nameof(GetAllKeywords))]
-    public void NextToken_Keyword_ReturnsKeywordToken(string keywordText, TokenType expectedType)
+    [MemberData(nameof(KeywordCases))]
+    public void NextToken_Keyword_ReturnsKeyword(string keywordText, TokenType expectedType)
     {
         List<Token> tokens = ScanTokens(keywordText);
 
@@ -118,7 +114,7 @@ public class LexerTests
         Assert.Equal(TokenType.Eof, tokens[1].Type);
     }
 
-    public static TheoryData<string, TokenType> GetKeywordsInDifferentCase()
+    public static TheoryData<string, TokenType> MixedCaseKeywordCases()
     {
         return new TheoryData<string, TokenType>
         {
@@ -131,8 +127,8 @@ public class LexerTests
     }
 
     [Theory]
-    [MemberData(nameof(GetKeywordsInDifferentCase))]
-    public void NextToken_KeywordInAnyCase_ReturnsKeywordInLowerCase(string keywordText, TokenType expectedType)
+    [MemberData(nameof(MixedCaseKeywordCases))]
+    public void NextToken_MixedCaseKeyword_ReturnsLowercased(string keywordText, TokenType expectedType)
     {
         List<Token> tokens = ScanTokens(keywordText);
 
@@ -142,7 +138,7 @@ public class LexerTests
         Assert.Equal(TokenType.Eof, tokens[1].Type);
     }
 
-    public static TheoryData<string> GetIntegerLiterals()
+    public static TheoryData<string> IntegerCases()
     {
         return
         [
@@ -153,8 +149,8 @@ public class LexerTests
     }
 
     [Theory]
-    [MemberData(nameof(GetIntegerLiterals))]
-    public void NextToken_IntegerLiteral_ReturnsLiteralWithSameText(string numberText)
+    [MemberData(nameof(IntegerCases))]
+    public void NextToken_Integer_ReturnsSameText(string numberText)
     {
         List<Token> tokens = ScanTokens(numberText);
 
@@ -164,7 +160,7 @@ public class LexerTests
         Assert.Equal(TokenType.Eof, tokens[1].Type);
     }
 
-    public static TheoryData<string, TokenType[]> GetIntegerLiteralSequences()
+    public static TheoryData<string, TokenType[]> SignAndDotCases()
     {
         return new TheoryData<string, TokenType[]>
         {
@@ -174,8 +170,8 @@ public class LexerTests
     }
 
     [Theory]
-    [MemberData(nameof(GetIntegerLiteralSequences))]
-    public void NextToken_IntegerLiteralWithNeighbours_ReturnsSeparateTokens(string sourceText, TokenType[] expectedTokenTypes)
+    [MemberData(nameof(SignAndDotCases))]
+    public void NextToken_SignAndDot_AreSeparateTokens(string sourceText, TokenType[] expectedTokenTypes)
     {
         AssertTokenTypes(sourceText, expectedTokenTypes);
     }
@@ -183,14 +179,14 @@ public class LexerTests
     [Theory]
     [InlineData("01")]
     [InlineData("1_")]
-    public void NextToken_InvalidIntegerLiteral_ThrowsWithLiteralStartPosition(string sourceText)
+    public void NextToken_InvalidInteger_Throws(string sourceText)
     {
         LexerException ex = Assert.Throws<LexerException>(() => ScanTokens(sourceText));
 
         Assert.Equal(new SourcePosition(1, 0), ex.Position);
     }
 
-    public static TheoryData<string, string> GetStringLiterals()
+    public static TheoryData<string, string> StringCases()
     {
         return new TheoryData<string, string>
         {
@@ -208,8 +204,8 @@ public class LexerTests
     }
 
     [Theory]
-    [MemberData(nameof(GetStringLiterals))]
-    public void NextToken_StringLiteral_ReturnsContentWithoutQuotes(string sourceText, string expectedValue)
+    [MemberData(nameof(StringCases))]
+    public void NextToken_String_ReturnsWithoutQuotes(string sourceText, string expectedValue)
     {
         List<Token> tokens = ScanTokens(sourceText);
 
@@ -219,7 +215,7 @@ public class LexerTests
         Assert.Equal(TokenType.Eof, tokens[1].Type);
     }
 
-    public static TheoryData<int> GetForbiddenControlCharacters()
+    public static TheoryData<int> ControlCharCases()
     {
         return
         [
@@ -230,8 +226,8 @@ public class LexerTests
     }
 
     [Theory]
-    [MemberData(nameof(GetForbiddenControlCharacters))]
-    public void NextToken_ControlCharacterInStringLiteral_Throws(int code)
+    [MemberData(nameof(ControlCharCases))]
+    public void NextToken_ControlCharInString_Throws(int code)
     {
         LexerException ex = Assert.Throws<LexerException>(() => ScanTokens("'a" + (char)code + "b'"));
 
@@ -243,14 +239,14 @@ public class LexerTests
     [InlineData("'a\rb'")]
     [InlineData("'a")]
     [InlineData("'a''")]
-    public void NextToken_UnclosedStringLiteral_ThrowsWithOpeningQuotePosition(string sourceText)
+    public void NextToken_UnclosedString_Throws(string sourceText)
     {
         LexerException ex = Assert.Throws<LexerException>(() => ScanTokens(sourceText));
 
         Assert.Equal(new SourcePosition(1, 0), ex.Position);
     }
 
-    public static TheoryData<string, TokenType> GetOperators()
+    public static TheoryData<string, TokenType> OperatorCases()
     {
         return new TheoryData<string, TokenType>
         {
@@ -268,8 +264,8 @@ public class LexerTests
     }
 
     [Theory]
-    [MemberData(nameof(GetOperators))]
-    public void NextToken_Operator_ReturnsOperatorToken(string operatorText, TokenType expectedType)
+    [MemberData(nameof(OperatorCases))]
+    public void NextToken_Operator_ReturnsOperator(string operatorText, TokenType expectedType)
     {
         List<Token> tokens = ScanTokens(operatorText);
 
@@ -279,7 +275,7 @@ public class LexerTests
         Assert.Equal(TokenType.Eof, tokens[1].Type);
     }
 
-    public static TheoryData<string, TokenType[]> GetOperatorSequences()
+    public static TheoryData<string, TokenType[]> AdjacentOperatorCases()
     {
         return new TheoryData<string, TokenType[]>
         {
@@ -290,13 +286,13 @@ public class LexerTests
     }
 
     [Theory]
-    [MemberData(nameof(GetOperatorSequences))]
+    [MemberData(nameof(AdjacentOperatorCases))]
     public void NextToken_AdjacentOperators_UseLongestMatch(string sourceText, TokenType[] expectedTokenTypes)
     {
         AssertTokenTypes(sourceText, expectedTokenTypes);
     }
 
-    public static TheoryData<string, TokenType> GetSeparators()
+    public static TheoryData<string, TokenType> SeparatorCases()
     {
         return new TheoryData<string, TokenType>
         {
@@ -313,8 +309,8 @@ public class LexerTests
     }
 
     [Theory]
-    [MemberData(nameof(GetSeparators))]
-    public void NextToken_Separator_ReturnsSeparatorToken(string separatorText, TokenType expectedType)
+    [MemberData(nameof(SeparatorCases))]
+    public void NextToken_Separator_ReturnsSeparator(string separatorText, TokenType expectedType)
     {
         List<Token> tokens = ScanTokens(separatorText);
 
@@ -324,42 +320,47 @@ public class LexerTests
         Assert.Equal(TokenType.Eof, tokens[1].Type);
     }
 
-    public static TheoryData<string, TokenType[]> GetSeparatorSequences()
+    public static TheoryData<string, TokenType[]> CodeFragmentCases()
     {
         return new TheoryData<string, TokenType[]>
         {
             { "...", [TokenType.DoubleDot, TokenType.Dot, TokenType.Eof] },
             {
-                "(*a*)",
-                [TokenType.OpenParen, TokenType.Multiply, TokenType.Identifier, TokenType.Multiply, TokenType.CloseParen, TokenType.Eof]
+                "(*a*)", [
+                    TokenType.OpenParen, TokenType.Multiply, TokenType.Identifier, TokenType.Multiply,
+                    TokenType.CloseParen, TokenType.Eof
+                ]
             },
             {
-                "a:array[1..10]of integer;",
-                [
+                "a:array[1..10]of integer;", [
                     TokenType.Identifier, TokenType.Colon, TokenType.Array, TokenType.OpenBracket,
                     TokenType.IntegerLiteral, TokenType.DoubleDot, TokenType.IntegerLiteral, TokenType.CloseBracket,
                     TokenType.Of, TokenType.Integer, TokenType.Semicolon, TokenType.Eof,
                 ]
             },
             {
-                "const a = 1;",
-                [TokenType.Const, TokenType.Identifier, TokenType.Equal, TokenType.IntegerLiteral, TokenType.Semicolon, TokenType.Eof]
+                "const a = 1;", [
+                    TokenType.Const, TokenType.Identifier, TokenType.Equal, TokenType.IntegerLiteral,
+                    TokenType.Semicolon, TokenType.Eof
+                ]
             },
             {
-                "writeln('a');",
-                [TokenType.Writeln, TokenType.OpenParen, TokenType.StringLiteral, TokenType.CloseParen, TokenType.Semicolon, TokenType.Eof]
+                "writeln('a');", [
+                    TokenType.Writeln, TokenType.OpenParen, TokenType.StringLiteral, TokenType.CloseParen,
+                    TokenType.Semicolon, TokenType.Eof
+                ]
             },
         };
     }
 
     [Theory]
-    [MemberData(nameof(GetSeparatorSequences))]
-    public void NextToken_CodeWithSeparators_ReturnsExpectedTokenTypes(string sourceText, TokenType[] expectedTokenTypes)
+    [MemberData(nameof(CodeFragmentCases))]
+    public void NextToken_CodeFragment_ReturnsTokens(string sourceText, TokenType[] expectedTokenTypes)
     {
         AssertTokenTypes(sourceText, expectedTokenTypes);
     }
 
-    public static TheoryData<string, TokenType[]> GetSourcesWithComments()
+    public static TheoryData<string, TokenType[]> CommentCases()
     {
         return new TheoryData<string, TokenType[]>
         {
@@ -375,14 +376,14 @@ public class LexerTests
     }
 
     [Theory]
-    [MemberData(nameof(GetSourcesWithComments))]
+    [MemberData(nameof(CommentCases))]
     public void NextToken_Comment_IsSkipped(string sourceText, TokenType[] expectedTokenTypes)
     {
         AssertTokenTypes(sourceText, expectedTokenTypes);
     }
 
     [Fact]
-    public void NextToken_NestedBlockComment_ThrowsOnExtraClosingBrace()
+    public void NextToken_NestedBlockComment_Throws()
     {
         LexerException ex = Assert.Throws<LexerException>(() => ScanTokens("{a{b}c}"));
 
@@ -398,8 +399,8 @@ public class LexerTests
     }
 
     [Theory]
-    [MemberData(nameof(GetForbiddenControlCharacters))]
-    public void NextToken_ControlCharacterInLineComment_Throws(int code)
+    [MemberData(nameof(ControlCharCases))]
+    public void NextToken_ControlCharInLineComment_Throws(int code)
     {
         LexerException ex = Assert.Throws<LexerException>(() => ScanTokens("//a" + (char)code + "b\nc"));
 
@@ -407,8 +408,8 @@ public class LexerTests
     }
 
     [Theory]
-    [MemberData(nameof(GetForbiddenControlCharacters))]
-    public void NextToken_ControlCharacterInBlockComment_Throws(int code)
+    [MemberData(nameof(ControlCharCases))]
+    public void NextToken_ControlCharInBlockComment_Throws(int code)
     {
         LexerException ex = Assert.Throws<LexerException>(() => ScanTokens("{a" + (char)code + "b}c"));
 
@@ -418,25 +419,22 @@ public class LexerTests
     [Theory]
     [InlineData("")]
     [InlineData(" \t\n\r\f\r\n")]
-    public void NextToken_EmptyOrWhitespaceOnlySource_ReturnsEof(string sourceText)
+    public void NextToken_EmptySource_ReturnsEof(string sourceText)
     {
         AssertTokenTypes(sourceText, [TokenType.Eof]);
     }
 
-    public static TheoryData<string, int, int> GetSecondTokenPositions()
+    public static TheoryData<string, int, int> LineBreakCases()
     {
         return new TheoryData<string, int, int>
         {
-            { "a\nb", 2, 0 },
-            { "a\rb", 2, 0 },
-            { "a\r\nb", 2, 0 },
-            { "{\n\n}  a", 3, 3 },
+            { "a\nb", 2, 0 }, { "a\rb", 2, 0 }, { "a\r\nb", 2, 0 }, { "{\n\n}  a", 3, 3 },
         };
     }
 
     [Theory]
-    [MemberData(nameof(GetSecondTokenPositions))]
-    public void NextToken_TokenAfterLineBreak_HasExpectedPosition(string sourceText, int expectedLine, int expectedColumn)
+    [MemberData(nameof(LineBreakCases))]
+    public void NextToken_AfterLineBreak_HasNextLine(string sourceText, int expectedLine, int expectedColumn)
     {
         List<Token> tokens = ScanTokens(sourceText);
 
@@ -444,7 +442,7 @@ public class LexerTests
     }
 
     [Fact]
-    public void NextToken_MultilineSource_ReturnsLineAndColumnForEachToken()
+    public void NextToken_MultilineSource_ReturnsPositions()
     {
         List<Token> tokens = ScanTokens("program a;\r\n  var b: integer;\r\nbegin end.");
 
@@ -467,18 +465,18 @@ public class LexerTests
     }
 
     [Fact]
-    public void NextToken_ErrorInMiddleOfSource_ReturnsPrecedingTokensFirst()
+    public void NextToken_ErrorInMiddle_ReturnsTokensBefore()
     {
         Lexer lexer = CreateLexer("a b @ c");
 
         Assert.Equal("a", lexer.NextToken().Value);
         Assert.Equal("b", lexer.NextToken().Value);
-        LexerException ex = Assert.Throws<LexerException>(lexer.NextToken);
-        Assert.Equal(new SourcePosition(1, 4), ex.Position);
+        LexerException lexerException = Assert.Throws<LexerException>(lexer.NextToken);
+        Assert.Equal(new SourcePosition(1, 4), lexerException.Position);
     }
 
     [Fact]
-    public void NextToken_CalledAfterEof_ReturnsEofAgain()
+    public void NextToken_AfterEof_ReturnsEof()
     {
         Lexer lexer = CreateLexer("a");
         lexer.NextToken();
@@ -488,35 +486,35 @@ public class LexerTests
     }
 
     [Fact]
-    public void NextToken_ProgramUsingAllConstructs_IsTokenizedWithoutErrors()
+    public void NextToken_FullProgram_NoErrors()
     {
         const string sourceText = """
-            program a;
-            const
-              n = 10;
-            var
-              b: array[1..10] of integer;
-              c: record d: string; e: boolean; end;
-              i: integer;
+                                  program a;
+                                  const
+                                    n = 10;
+                                  var
+                                    b: array[1..10] of integer;
+                                    c: record d: string; e: boolean; end;
+                                    i: integer;
 
-            function f(x: integer): integer;
-            begin
-              f := x * 2 div 1 mod 3;
-            end;
+                                  function f(x: integer): integer;
+                                  begin
+                                    f := x * 2 div 1 mod 3;
+                                  end;
 
-            begin
-              readln(i);
-              while (i <= n) and not (i = 5) do
-              begin
-                b[i] := -1;
-                i := i + 1;
-              end;
-              c.d := 'a''b';
-              c.e := true or false;
-              if i <> 0 then writeln(f(i)) else read(i);
-              if i >= 1 then write(c.d);
-            end.
-            """;
+                                  begin
+                                    readln(i);
+                                    while (i <= n) and not (i = 5) do
+                                    begin
+                                      b[i] := -1;
+                                      i := i + 1;
+                                    end;
+                                    c.d := 'a''b';
+                                    c.e := true or false;
+                                    if i <> 0 then writeln(f(i)) else read(i);
+                                    if i >= 1 then write(c.d);
+                                  end.
+                                  """;
 
         List<Token> tokens = ScanTokens(sourceText);
 
@@ -530,9 +528,9 @@ public class LexerTests
     }
 
     [Fact]
-    public void LexerException_Created_ContainsMessageAndPosition()
+    public void Message_ContainsPosition()
     {
-        LexerException ex = new LexerException("error", new SourcePosition(3, 7));
+        LexerException ex = new("error", new SourcePosition(3, 7));
 
         Assert.Equal(3, ex.Line);
         Assert.Equal(7, ex.Column);
@@ -545,15 +543,15 @@ public class LexerTests
     {
         Lexer lexer = CreateLexer(source);
         List<Token> tokens = [];
-        Token token;
-        do
+        while (true)
         {
-            token = lexer.NextToken();
+            Token token = lexer.NextToken();
             tokens.Add(token);
+            if (token.Type == TokenType.Eof)
+            {
+                return tokens;
+            }
         }
-        while (token.Type != TokenType.Eof);
-
-        return tokens;
     }
 
     private static void AssertTokenTypes(string sourceText, TokenType[] expectedTokenTypes)
