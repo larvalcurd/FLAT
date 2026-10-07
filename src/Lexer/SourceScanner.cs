@@ -1,7 +1,7 @@
 ﻿namespace Lexer;
 
 /// <summary>
-/// Класс TextHandler, отвечает за считывание и хранение текста из файла,
+/// Класс SourceScanner, отвечает за считывание и хранение текста из файла,
 /// а также хранения позиции нахождения "каретки".
 /// </summary>
 public class SourceScanner(string inputText)
