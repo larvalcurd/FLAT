@@ -115,7 +115,7 @@ public class Lexer(string source)
         if (_sourceScanner.Peek() == '0' && char.IsAsciiDigit(_sourceScanner.Peek(1)))
         {
             throw new LexerException(
-                "Lexical error: invalid numeric literal. Identifier cannot start with a 0.", startPos);
+                "Lexical error: invalid integer literal. Leading zeros.", startPos);
         }
 
         while (!_sourceScanner.IsEof() && char.IsAsciiDigit(_sourceScanner.Peek()))
@@ -168,7 +168,7 @@ public class Lexer(string source)
                 case '\n':
                 case '\r':
                     throw new LexerException(
-                        "Lexical error: unclosed string literal ", startPos);
+                        "Lexical error: unclosed string literal.", startPos);
             }
 
             if (IsInvalidControlChar(c))
@@ -293,7 +293,7 @@ public class Lexer(string source)
             if (IsInvalidControlChar(commentChar))
             {
                 throw new LexerException(
-                    "Lexical error: invalid control character in comment",
+                    "Lexical error: invalid control character in comment.",
                     _sourceScanner.CurrentPosition);
             }
 
@@ -322,7 +322,7 @@ public class Lexer(string source)
             if (IsInvalidControlChar(commentChar))
             {
                 throw new LexerException(
-                    "Lexical error: invalid control character in comment. ",
+                    "Lexical error: invalid control character in comment.",
                     startPos);
             }
         }
@@ -330,7 +330,7 @@ public class Lexer(string source)
         if (!closed)
         {
             throw new LexerException(
-                "Lexical error: unclosed block comment starting. ",
+                "Lexical error: unclosed block comment starting.",
                 startPos);
         }
     }
