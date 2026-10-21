@@ -1,6 +1,7 @@
 <Solution>
   <Folder Name="/src/">
     <Project Path="src/Lexer/Lexer.csproj" />
+    <Project Path="src/VM/VM.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/MicroPascal.Tests/MicroPascal.Tests.csproj" />
