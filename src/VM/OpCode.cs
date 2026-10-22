@@ -1,7 +1,8 @@
 ﻿namespace VM;
 
-public enum OpCode
+public enum OpCodes
 {
+    Halt,
     Push,
     Add,
     Sub,
@@ -18,7 +19,7 @@ public enum OpCode
     Or,
     Not,
     Read,
+    Readln,
     Write,
-    Writeln,
-    Halt
+    Writeln
 }
