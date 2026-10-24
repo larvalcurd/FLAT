@@ -11,6 +11,7 @@ public enum OpCodes
     Mod,
     Neg,
     Eq,
+    Ne,
     Lt,
     Le,
     Gt,
