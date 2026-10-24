@@ -22,6 +22,11 @@ public class InputReader(TextReader input)
             ch = input.Read();
         }
 
+        if (ch == -1 || !char.IsAsciiDigit((char)ch))
+        {
+            throw new VmException($"Invalid integer input: expected digit, got '{(char)ch}'");
+        }
+
         long acc = 0;
         while (ch != -1 && char.IsAsciiDigit((char)ch))
         {
@@ -56,7 +61,8 @@ public class InputReader(TextReader input)
             {
                 throw new VmException("Unexpected end of stream");
             }
-        } while (char.IsWhiteSpace((char)ch));
+        }
+        while (char.IsWhiteSpace((char)ch));
 
         return ch;
     }
@@ -66,10 +72,10 @@ public class InputReader(TextReader input)
         int ch;
         while ((ch = input.Read()) != -1)
         {
-            if (ch == '\n')
+            if (ch is '\n' or '\r')
             {
                 return;
             }
         }
     }
-};
+}

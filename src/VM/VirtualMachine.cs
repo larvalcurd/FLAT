@@ -23,7 +23,9 @@ public class VirtualMachine(List<Instruction> program, TextReader? input = null,
     /// Указатель на инструкцию, что выполняется в данный момент
     /// </summary>
     private int _ip;
-    
+
+    public IReadOnlyList<int> StackSnapshot => _stack.ToArray();
+
     public void Run()
     {
         while (_ip < _program.Count)
