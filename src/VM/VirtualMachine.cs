@@ -7,10 +7,9 @@
 public class VirtualMachine(List<Instruction> program, TextReader? input = null, TextWriter? output = null)
 {
     /// <summary>
-    /// Программа, т.е. список инструкций, которая будет выполнять ВМ 
+    /// Программа, т.е. список инструкций, которая будет выполнять ВМ
     /// </summary>
-    private List<Instruction> _program { get; } = program;
-
+    private readonly List<Instruction> _program = program;
     private readonly InputReader _input = new(input ?? Console.In);
     private readonly OutputWriter _output = new(output ?? Console.Out);
 
@@ -39,8 +38,7 @@ public class VirtualMachine(List<Instruction> program, TextReader? input = null,
     /// Реализация поведения инструкций из разрешенного списка.
     /// </summary>
     /// <param name="instruction">Инструкция ВМ, которая будет выполняться в данный момент</param>
-    /// TODO: Дописать описание исключения
-    /// <exception cref="VmException">Исключение, </exception>
+    /// <exception cref="VmException">Исключение возникает в случае попытки деления на 0</exception>
     private void Execute(Instruction instruction)
     {
         switch (instruction.Operation)

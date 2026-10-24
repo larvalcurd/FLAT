@@ -1,5 +1,8 @@
 ﻿namespace VM;
 
+/// <summary>
+/// Инструкции, реализуемые виртуальной машиной
+/// </summary>
 public enum OpCodes
 {
     Halt,
@@ -22,5 +25,5 @@ public enum OpCodes
     Read,
     Readln,
     Write,
-    Writeln
+    Writeln,
 }
