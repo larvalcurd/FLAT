@@ -3,10 +3,9 @@
 /// <summary>
 /// Стековая виртуальная машина для MicroPascal.
 /// </summary>
-// TODO: Переделать инструкции ввода/вывода на интерфейс, как в примере миниджавы. Решается принципом Д из СОЛИД.
 // TODO: Дописать поведение на инструкции ввода
 // TODO: Убрать предупреждения сборки.
-public class VirtualMachine(List<Instruction> program)
+public class VirtualMachine(List<Instruction> program, TextReader? input = null, TextWriter? output = null)
 {
     /// <summary>
     /// Программа, т.е. список инструкций, которая будет выполнять ВМ 
@@ -22,6 +21,9 @@ public class VirtualMachine(List<Instruction> program)
     /// Указатель на инструкцию, что выполняется в данный момент 
     /// </summary>
     private int _ip;
+
+    private readonly InputReader _input = new(input ?? Console.In);
+    private readonly OutputWriter _output = new(output ?? Console.Out);
 
     public void Run()
     {
@@ -186,13 +188,13 @@ public class VirtualMachine(List<Instruction> program)
 
             case OpCodes.Write:
                 {
-                    Console.Write(Pop());
+                    _output.Write(Pop());
                     break;
                 }
 
             case OpCodes.Writeln:
                 {
-                    Console.WriteLine(Pop());
+                    _output.WriteLine(Pop());
                     break;
                 }
 
