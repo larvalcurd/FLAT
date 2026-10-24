@@ -1,13 +1,26 @@
 ﻿namespace VM;
 
 /// <summary>
-/// Стековая виртуальная машина.
+/// Стековая виртуальная машина для MicroPascal.
 /// </summary>
+// TODO: Переделать инструкции ввода/вывода на интерфейс, как в примере миниджавы. Решается принципом Д из СОЛИД.
+// TODO: Дописать поведение на инструкции ввода
+// TODO: Убрать предупреждения сборки.
 public class VirtualMachine(List<Instruction> program)
 {
+    /// <summary>
+    /// Программа, т.е. список инструкций, которая будет выполнять ВМ 
+    /// </summary>
     private List<Instruction> _program { get; } = program;
 
+    /// <summary>
+    /// Стэк для вычислений
+    /// </summary>
     private readonly Stack<int> _stack = new();
+
+    /// <summary>
+    /// Указатель на инструкцию, что выполняется в данный момент 
+    /// </summary>
     private int _ip;
 
     public void Run()
@@ -19,6 +32,12 @@ public class VirtualMachine(List<Instruction> program)
         }
     }
 
+    /// <summary>
+    /// Реализация поведения инструкций из разрешенного списка.
+    /// </summary>
+    /// <param name="instruction">Инструкция ВМ, которая будет выполняться в данный момент</param>
+    /// TODO: Дописать описание исключения
+    /// <exception cref="VmException">Исключение, </exception>
     private void Execute(Instruction instruction)
     {
         switch (instruction.Operation)
@@ -30,98 +49,165 @@ public class VirtualMachine(List<Instruction> program)
                 _stack.Push(instruction.Operand ?? throw new VmException("Operand is null"));
                 break;
             case OpCodes.Add:
-                int b = Pop();
-                int a = Pop();
-                _stack.Push(a + b);
-                break;
+                {
+                    int b = Pop();
+                    int a = Pop();
+                    _stack.Push(a + b);
+                    break;
+                }
+
             case OpCodes.Sub:
-                int b = Pop();
-                int a = Pop();
-                _stack.Push(a - b);
-                break;
+                {
+                    int b = Pop();
+                    int a = Pop();
+                    _stack.Push(a - b);
+                    break;
+                }
+
             case OpCodes.Mul:
-                int b = Pop();
-                int a = Pop();
-                _stack.Push(a * b);
+                {
+                    int b = Pop();
+                    int a = Pop();
+                    _stack.Push(a * b);
+                    break;
+                }
+
             case OpCodes.Div:
-                int b = Pop();
-                int a = Pop();
-                if (b == 0)
                 {
-                    throw new VmException("Division by zero");
+                    int b = Pop();
+                    int a = Pop();
+                    if (b == 0)
+                    {
+                        throw new VmException("Division by zero");
+                    }
+
+                    _stack.Push(a / b);
+                    break;
                 }
 
-                _stack.Push(a / b);
             case OpCodes.Mod:
-                int b = Pop();
-                int a = Pop();
-                if (b == 0)
                 {
-                    throw new VmException("Division by zero");
+                    int b = Pop();
+                    int a = Pop();
+                    if (b == 0)
+                    {
+                        throw new VmException("Division by zero");
+                    }
+
+                    _stack.Push(a % b);
+                    break;
                 }
 
-                _stack.Push(a % b);
             case OpCodes.Neg:
-                _stack.Push(-Pop());
-                break;
+                {
+                    _stack.Push(-Pop());
+                    break;
+                }
+
             case OpCodes.Eq:
-                int b = Pop();
-                int a = Pop();
-                _stack.Push(a == b ? 1 : 0);
-                break;
+                {
+                    int b = Pop();
+                    int a = Pop();
+                    _stack.Push(a == b ? 1 : 0);
+                    break;
+                }
+
+            case OpCodes.Ne:
+                {
+                    int b = Pop();
+                    int a = Pop();
+                    _stack.Push(a != b ? 1 : 0);
+                    break;
+                }
+
             case OpCodes.Lt:
-                int b = Pop();
-                int a = Pop();
-                _stack.Push(a > b ? 1 : 0);
-                break;
+                {
+                    int b = Pop();
+                    int a = Pop();
+                    _stack.Push(a < b ? 1 : 0);
+                    break;
+                }
+
             case OpCodes.Le:
-                int b = Pop();
-                int a = Pop();
-                _stack.Push(a >= b ? 1 : 0);
-                break;
+                {
+                    int b = Pop();
+                    int a = Pop();
+                    _stack.Push(a <= b ? 1 : 0);
+                    break;
+                }
+
             case OpCodes.Gt:
-                int b = Pop();
-                int a = Pop();
-                _stack.Push(a < b ? 1 : 0);
-                break;
+                {
+                    int b = Pop();
+                    int a = Pop();
+                    _stack.Push(a > b ? 1 : 0);
+                    break;
+                }
+
             case OpCodes.Ge:
-                int b = Pop();
-                int a = Pop();
-                _stack.Push(a >= b ? 1 : 0);
-                break;
+                {
+                    int b = Pop();
+                    int a = Pop();
+                    _stack.Push(a >= b ? 1 : 0);
+                    break;
+                }
+
             case OpCodes.And:
-                int b = Pop();
-                int a = Pop();
-                _stack.Push(a != 0 && b != 0 ? 1 : 0);
-                break;
+                {
+                    int b = Pop();
+                    int a = Pop();
+                    _stack.Push(a != 0 && b != 0 ? 1 : 0);
+                    break;
+                }
+
             case OpCodes.Or:
-                int b = Pop();
-                int a = Pop();
-                _stack.Push(a != 0 || b != 0 ? 1 : 0);
-                break;
+                {
+                    int b = Pop();
+                    int a = Pop();
+                    _stack.Push(a != 0 || b != 0 ? 1 : 0);
+                    break;
+                }
+
             case OpCodes.Not:
-                _stack.Push(Pop() == 0 ? 1 : 0);
-                break;
+                {
+                    _stack.Push(Pop() == 0 ? 1 : 0);
+                    break;
+                }
+
             case OpCodes.Read:
+                {
+                    break;
+                }
+
             case OpCodes.Readln:
+                {
+                    break;
+                }
+
             case OpCodes.Write:
-                Console.Write(Pop());
-                break;
+                {
+                    Console.Write(Pop());
+                    break;
+                }
+
             case OpCodes.Writeln:
-                Console.WriteLine(Pop());
-                break;
+                {
+                    Console.WriteLine(Pop());
+                    break;
+                }
+
             default:
                 throw new VmException($"Unsupported opcode: {instruction.Operation}");
         }
     }
 
+    /// <summary>
+    /// Модифицированная инструкция POP для стека вычислений.
+    /// </summary>
+    /// <returns>Значение с вершины стека</returns>
+    /// <exception cref="VmException">возникает в случае попытки извлечь значение из пустого стека </exception>
     private int Pop()
     {
-        if (_stack.Count == 0)
-        {
-            throw new VmException("Stack is empty");
-        }
-
-        return _stack.Pop();
+        return _stack.Count == 0 ? throw new VmException("Stack is empty") : _stack.Pop();
     }
 }
