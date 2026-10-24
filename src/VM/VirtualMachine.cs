@@ -3,7 +3,6 @@
 /// <summary>
 /// Стековая виртуальная машина для MicroPascal.
 /// </summary>
-// TODO: Дописать поведение на инструкции ввода
 // TODO: Убрать предупреждения сборки.
 public class VirtualMachine(List<Instruction> program, TextReader? input = null, TextWriter? output = null)
 {
@@ -12,19 +11,19 @@ public class VirtualMachine(List<Instruction> program, TextReader? input = null,
     /// </summary>
     private List<Instruction> _program { get; } = program;
 
+    private readonly InputReader _input = new(input ?? Console.In);
+    private readonly OutputWriter _output = new(output ?? Console.Out);
+
     /// <summary>
     /// Стэк для вычислений
     /// </summary>
     private readonly Stack<int> _stack = new();
 
     /// <summary>
-    /// Указатель на инструкцию, что выполняется в данный момент 
+    /// Указатель на инструкцию, что выполняется в данный момент
     /// </summary>
     private int _ip;
-
-    private readonly InputReader _input = new(input ?? Console.In);
-    private readonly OutputWriter _output = new(output ?? Console.Out);
-
+    
     public void Run()
     {
         while (_ip < _program.Count)
@@ -178,11 +177,13 @@ public class VirtualMachine(List<Instruction> program, TextReader? input = null,
 
             case OpCodes.Read:
                 {
+                    _stack.Push(_input.ReadInt());
                     break;
                 }
 
             case OpCodes.Readln:
                 {
+                    _stack.Push(_input.ReadlnInt());
                     break;
                 }
 
@@ -207,7 +208,7 @@ public class VirtualMachine(List<Instruction> program, TextReader? input = null,
     /// Модифицированная инструкция POP для стека вычислений.
     /// </summary>
     /// <returns>Значение с вершины стека</returns>
-    /// <exception cref="VmException">возникает в случае попытки извлечь значение из пустого стека </exception>
+    /// <exception cref="VmException">Исключение возникает в случае попытки извлечь значение из пустого стека </exception>
     private int Pop()
     {
         return _stack.Count == 0 ? throw new VmException("Stack is empty") : _stack.Pop();
