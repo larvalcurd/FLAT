@@ -9,6 +9,7 @@ public class OutputWriter(TextWriter output)
 
     public void WriteLine(int value)
     {
-        output.WriteLine(value);
+        output.Write(value);
+        output.Write('\n');
     }
 }
