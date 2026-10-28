@@ -6,7 +6,7 @@ using static VM.OpCodes;
 
 namespace Lexer.UnitTests;
 
-public class VMTests
+public class VmTests
 {
     private static VirtualMachine Vm(string input, TextWriter output, params Instruction[] prog)
         => new([.. prog], new StringReader(input), output);
@@ -32,19 +32,27 @@ public class VMTests
     }
 
     [Fact]
-    public void Push_Halt_ProgramEndsCorrectly()
+    public void Push_WithoutHalt_ProgramEndsCorrectly()
     {
-        Assert.Equal(new[] { 2, 1 }, RunStack(
+        Assert.Equal([2, 1], RunStack(
             "",
-            new(Push, 1), new(Push, 2), new(Halt)));
+            new Instruction(Push, 1), new(Push, 2)));
     }
 
     [Fact]
     public void Halt_StopsBeforeNextInstruction()
     {
-        string output = Run("",
-            new(Push, 42), new(Halt), new(Writeln));
+        string output = Run(
+            "",
+            new Instruction(Push, 42), new Instruction(Halt), new(Writeln));
         Assert.Equal("", output);
+    }
+
+    [Fact]
+    public void Push_EmptyrogrammEndsCorrectly()
+    {
+        string output = Run(
+            "");
     }
 
     [Fact]
@@ -54,36 +62,64 @@ public class VMTests
     [Fact]
     public void Pop_FromEmptyStack_Throws()
         => AssertVmThrows("", new(Add), new(Halt));
-    
+
     [Theory]
     [InlineData(Add, 2, 3, 5)]
-    [InlineData(Sub, 10, 3, 7)] // a - b, не b - a
+    [InlineData(Sub, 10, 3, 7)]
     [InlineData(Mul, 6, 7, 42)]
-    [InlineData(Div, 20, 5, 4)] // a / b, не b / a
+    [InlineData(Div, 20, 5, 4)]
     [InlineData(Mod, 10, 3, 1)]
     public void BinaryOp_ComputesCorrectly(OpCodes op, int a, int b, int expected)
     {
-        IReadOnlyList<int> stack = RunStack("",
-            new(Push, a), new(Push, b), new(op));
+        IReadOnlyList<int> stack = RunStack(
+            "",
+            new(Push, a),
+            new Instruction(Push, b),
+            new(op));
+        Assert.Equal([expected], stack);
+    }
+
+    [Theory]
+    [InlineData(-5, 5)]
+    [InlineData(5, -5)]
+    public void Neg_FlipSign(int a, int expected)
+    {
+        IReadOnlyList<int> stack = RunStack(
+            "",
+            new(Push, a),
+            new(Neg));
         Assert.Equal([expected], stack);
     }
 
     [Fact]
-    public void Neg_FlipsSign()
-    {
-        Assert.Equal(new[] { -5 }, RunStack("",
-            new(Push, 5), new(Neg)));
-    }
-
-    [Fact]
     public void Div_ByZero_Throws()
-        => AssertVmThrows("",
-            new(Push, 10), new(Push, 0), new(Div));
+        => AssertVmThrows(
+            "",
+            new(Push, 10),
+            new(Push, 0),
+            new(Div));
 
     [Fact]
     public void Mod_ByZero_Throws()
         => AssertVmThrows("",
             new(Push, 10), new(Push, 0), new(Mod));
+
+    [Fact]
+    public void CalculateExpression_ComplexExpression()
+    {
+        IReadOnlyList<int> stack = RunStack(
+            "",
+            new Instruction(Push, 10),
+            new Instruction(Push, 5),
+            new Instruction(Add),
+            new Instruction(Push, 2),
+            new Instruction(Mul),
+            new Instruction(Push, 10),
+            new Instruction(Push, 5),
+            new Instruction(Div),
+            new Instruction(Sub));
+        Assert.Equal([28], stack);
+    }
 
     [Theory]
     [InlineData(Eq, 5, 5, 1)]
@@ -98,6 +134,7 @@ public class VMTests
     [InlineData(Gt, 5, 5, 0)]
     [InlineData(Ge, 5, 5, 1)]
     [InlineData(Ge, 3, 5, 0)]
+    [InlineData(Le, 10 - 3, 5, 0)]
     public void Comparison_Works(OpCodes op, int a, int b, int expected)
     {
         IReadOnlyList<int> stack = RunStack("",
@@ -147,8 +184,6 @@ public class VMTests
             new(Push, 2), new(Writeln)));
     }
 
-    // ---------- Ввод ----------
-
     [Fact]
     public void Read_ParsesInt()
     {
@@ -174,6 +209,24 @@ public class VMTests
     }
 
     [Fact]
+    public void Readln_OnCrLf()
+    {
+        IReadOnlyList<int> stack = RunStack("10\r\n20\r\n", new(Readln), new(Readln), new(Halt));
+        Assert.Equal(new[] { 20, 10 }, stack);
+    }
+
+    [Fact]
+    public void Readln_OnEofAfterNumber_IsOk()
+    {
+        IReadOnlyList<int> stack = RunStack("10", new(Readln), new(Halt));
+        Assert.Equal(new[] { 10 }, stack);
+    }
+
+    [Fact]
+    public void Readln_InvalidNumber_Throws()
+        => AssertVmThrows("- 5\n", new(Readln), new(Halt));
+
+    [Fact]
     public void ReadThenWrite_EchoesInput()
     {
         string output = Run("7",
@@ -183,10 +236,15 @@ public class VMTests
 
     [Theory]
     [InlineData("")]
+    [InlineData(" ")]
+    [InlineData("-")]
+    [InlineData("+")]
     [InlineData("abc")]
     [InlineData("12ab")]
+    [InlineData("--5")]
     [InlineData("- 5")]
     [InlineData("2147483648")]
+    [InlineData("99999999999999999999999999")]
     public void Read_InvalidInput_Throws(string input)
     {
         AssertVmThrows(input, new(Read), new(Halt));
@@ -198,6 +256,12 @@ public class VMTests
         IReadOnlyList<int> stack = RunStack("-2147483648",
             new(Read), new(Halt));
         Assert.Equal(new[] { int.MinValue }, stack);
+    }
+
+    [Fact]
+    public void Read_MaxValue_IsAccepted()
+    {
+        Assert.Equal(new[] { int.MaxValue }, RunStack("2147483647", new(Read), new(Halt)));
     }
 
     [Fact]
