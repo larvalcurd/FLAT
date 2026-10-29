@@ -8,35 +8,13 @@ namespace Lexer.UnitTests;
 
 public class VmTests
 {
-    private static VirtualMachine Vm(string input, TextWriter output, params Instruction[] prog)
-        => new([.. prog], new StringReader(input), output);
-
-    private static string Run(string input, params Instruction[] prog)
-    {
-        StringWriter output = new();
-        Vm(input, output, prog).Run();
-        return output.ToString();
-    }
-
-    private static IReadOnlyList<int> RunStack(string input, params Instruction[] prog)
-    {
-        VirtualMachine vm = Vm(input, new StringWriter(), prog);
-        vm.Run();
-        return vm.StackSnapshot;
-    }
-
-    private static void AssertVmThrows(string input, params Instruction[] prog)
-    {
-        VirtualMachine vm = Vm(input, new StringWriter(), prog);
-        Assert.Throws<VmException>(vm.Run);
-    }
-
     [Fact]
-    public void Push_WithoutHalt_ProgramEndsCorrectly()
+    public void Push_WithoutHaltCorrectly()
     {
         Assert.Equal([2, 1], RunStack(
             "",
-            new Instruction(Push, 1), new(Push, 2)));
+            new Instruction(Push, 1),
+            new Instruction(Push, 2)));
     }
 
     [Fact]
@@ -44,12 +22,14 @@ public class VmTests
     {
         string output = Run(
             "",
-            new Instruction(Push, 42), new Instruction(Halt), new(Writeln));
+            new Instruction(Push, 42),
+            new Instruction(Halt),
+            new Instruction(Writeln));
         Assert.Equal("", output);
     }
 
     [Fact]
-    public void Push_EmptyrogrammEndsCorrectly()
+    public void Push_EmptyProgramEndsCorrectly()
     {
         string output = Run(
             "");
@@ -57,11 +37,17 @@ public class VmTests
 
     [Fact]
     public void Push_WithoutOperand_Throws()
-        => AssertVmThrows("", new(Push), new(Halt));
+        => AssertVmThrows(
+            "",
+            new Instruction(Push),
+            new Instruction(Halt));
 
     [Fact]
     public void Pop_FromEmptyStack_Throws()
-        => AssertVmThrows("", new(Add), new(Halt));
+        => AssertVmThrows(
+            "",
+            new Instruction(Add),
+            new Instruction(Halt));
 
     [Theory]
     [InlineData(Add, 2, 3, 5)]
@@ -96,13 +82,16 @@ public class VmTests
         => AssertVmThrows(
             "",
             new(Push, 10),
-            new(Push, 0),
-            new(Div));
+            new Instruction(Push, 0),
+            new Instruction(Div));
 
     [Fact]
     public void Mod_ByZero_Throws()
-        => AssertVmThrows("",
-            new(Push, 10), new(Push, 0), new(Mod));
+        => AssertVmThrows(
+            "",
+            new(Push, 10),
+            new Instruction(Push, 0),
+            new Instruction(Mod));
 
     [Fact]
     public void CalculateExpression_ComplexExpression()
@@ -137,8 +126,11 @@ public class VmTests
     [InlineData(Le, 10 - 3, 5, 0)]
     public void Comparison_Works(OpCodes op, int a, int b, int expected)
     {
-        IReadOnlyList<int> stack = RunStack("",
-            new(Push, a), new(Push, b), new(op));
+        IReadOnlyList<int> stack = RunStack(
+            "",
+            new Instruction(Push, a),
+            new Instruction(Push, b),
+            new Instruction(op));
         Assert.Equal([expected], stack);
     }
 
@@ -151,8 +143,11 @@ public class VmTests
     [InlineData(Or, 5, 0, 1)]
     public void LogicalBinary_Works(OpCodes op, int a, int b, int expected)
     {
-        IReadOnlyList<int> stack = RunStack("",
-            new(Push, a), new(Push, b), new(op));
+        IReadOnlyList<int> stack = RunStack(
+            "",
+            new Instruction(Push, a),
+            new Instruction(Push, b),
+            new Instruction(op));
         Assert.Equal([expected], stack);
     }
 
@@ -162,33 +157,67 @@ public class VmTests
     [InlineData(5, 0)]
     public void Not_Works(int a, int expected)
     {
-        IReadOnlyList<int> stack = RunStack("",
+        IReadOnlyList<int> stack = RunStack(
+            "",
             new(Push, a), new(Not));
         Assert.Equal(new[] { expected }, stack);
     }
 
     [Fact]
+    public void UnknownOpcode_Throws()
+    {
+        AssertVmThrows(
+            "",
+            new Instruction((OpCodes)999, null),
+            new Instruction(Halt));
+    }
+
+    [Fact]
     public void Write_PrintsWithoutNewLine()
     {
-        Assert.Equal("123", Run("",
-            new(Push, 1), new(Write),
-            new(Push, 2), new(Write),
-            new(Push, 3), new(Write)));
+        Assert.Equal("12", Run(
+            "",
+            new Instruction(Push, 1),
+            new Instruction(Write),
+            new Instruction(Push, 2),
+            new(Write)));
     }
 
     [Fact]
     public void Writeln_PrintsWithNewLine()
     {
-        Assert.Equal("1\n2\n", Run("",
-            new(Push, 1), new(Writeln),
-            new(Push, 2), new(Writeln)));
+        Assert.Equal("1\n", Run(
+            "",
+            new Instruction(Push, 1),
+            new Instruction(Operation: Writeln)));
+    }
+
+    [Fact]
+    public void Writeln_PrintsWithNewLineTwice()
+    {
+        Assert.Equal("1\n2\n", Run(
+            "",
+            new Instruction(Push, 1),
+            new Instruction(Operation: Writeln),
+            new Instruction(Operation: Push, 2),
+            new Instruction(Writeln)));
+    }
+
+    [Fact]
+    public void Write_FromEmptyStackThrows()
+    {
+        AssertVmThrows(
+            "",
+            new Instruction(Write));
     }
 
     [Fact]
     public void Read_ParsesInt()
     {
-        Assert.Equal(new[] { 42 }, RunStack("42",
-            new(Read), new(Halt)));
+        Assert.Equal([42], RunStack(
+            "42",
+            new Instruction(Read),
+            new Instruction(Halt)));
     }
 
     [Fact]
@@ -196,8 +225,10 @@ public class VmTests
     {
         IReadOnlyList<int> stack = RunStack(
             "  -7  3  ",
-            new(Read), new(Read), new(Halt));
-        Assert.Equal(new[] { 3, -7 }, stack);
+            new Instruction(Read),
+            new Instruction(Read),
+            new Instruction(Halt));
+        Assert.Equal([3, -7], stack);
     }
 
     [Fact]
@@ -229,8 +260,14 @@ public class VmTests
     [Fact]
     public void ReadThenWrite_EchoesInput()
     {
-        string output = Run("7",
-            new(Read), new(Writeln), new(Halt));
+        string output = Run(
+            "7",
+            prog:
+            [
+                new(Read),
+                new Instruction(Writeln),
+                new(Halt)
+            ]);
         Assert.Equal("7\n", output);
     }
 
@@ -264,11 +301,26 @@ public class VmTests
         Assert.Equal(new[] { int.MaxValue }, RunStack("2147483647", new(Read), new(Halt)));
     }
 
-    [Fact]
-    public void UnknownOpcode_Throws()
+    private static VirtualMachine Vm(string input, TextWriter output, params Instruction[] prog)
+        => new([.. prog], new StringReader(input), output);
+
+    private static string Run(string input, params Instruction[] prog)
     {
-        AssertVmThrows("",
-            new Instruction((OpCodes)999, null),
-            new(Halt));
+        StringWriter output = new();
+        Vm(input, output, prog).Run();
+        return output.ToString();
+    }
+
+    private static IReadOnlyList<int> RunStack(string input, params Instruction[] prog)
+    {
+        VirtualMachine vm = Vm(input, new StringWriter(), prog);
+        vm.Run();
+        return vm.StackSnapshot;
+    }
+
+    private static void AssertVmThrows(string input, params Instruction[] prog)
+    {
+        VirtualMachine vm = Vm(input, new StringWriter(), prog);
+        Assert.Throws<VmException>(vm.Run);
     }
 }
