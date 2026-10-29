@@ -3,14 +3,21 @@
 /// <summary>
 /// Стековая виртуальная машина для MicroPascal.
 /// </summary>
-// TODO: Убрать предупреждения сборки.
 public class VirtualMachine(List<Instruction> program, TextReader? input = null, TextWriter? output = null)
 {
     /// <summary>
     /// Программа, т.е. список инструкций, которая будет выполнять ВМ
     /// </summary>
     private readonly List<Instruction> _program = program;
+
+    /// <summary>
+    /// Входящий поток
+    /// </summary>
     private readonly InputReader _input = new(input ?? Console.In);
+
+    /// <summary>
+    /// Выходящий поток
+    /// </summary>
     private readonly OutputWriter _output = new(output ?? Console.Out);
 
     /// <summary>
