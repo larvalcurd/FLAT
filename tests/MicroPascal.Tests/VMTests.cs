@@ -29,10 +29,11 @@ public class VmTests
     }
 
     [Fact]
-    public void Push_EmptyProgramEndsCorrectly()
+    public void Push_OnlyHaltEmptyStack()
     {
-        string output = Run(
-            "");
+        Assert.Equal([], RunStack(
+            "",
+            new Instruction(Halt)));
     }
 
     [Fact]
@@ -159,8 +160,9 @@ public class VmTests
     {
         IReadOnlyList<int> stack = RunStack(
             "",
-            new(Push, a), new(Not));
-        Assert.Equal(new[] { expected }, stack);
+            new Instruction(Push, a),
+            new Instruction(Not));
+        Assert.Equal([expected], stack);
     }
 
     [Fact]
@@ -168,7 +170,7 @@ public class VmTests
     {
         AssertVmThrows(
             "",
-            new Instruction((OpCodes)999, null),
+            new Instruction((OpCodes)999),
             new Instruction(Halt));
     }
 
@@ -180,7 +182,7 @@ public class VmTests
             new Instruction(Push, 1),
             new Instruction(Write),
             new Instruction(Push, 2),
-            new(Write)));
+            new Instruction(Write)));
     }
 
     [Fact]
@@ -287,15 +289,14 @@ public class VmTests
         Assert.Equal([10], stack);
     }
 
-    // [Fact]
-    // public void Read_AfterHaltThrow()
-    // {
-    //     AssertVmThrows(
-    //         "10",
-    //         new Instruction(Read),
-    //         new Instruction(Halt),
-    //         new Instruction(Read));
-    // }
+    [Fact]
+    public void Read_AfterEOFThrow()
+    {
+        AssertVmThrows(
+            "10^Z",
+            new Instruction(Read),
+            new Instruction(Read));
+    }
 
     [Theory]
     [InlineData(" ")]
@@ -320,11 +321,43 @@ public class VmTests
             "7",
             prog:
             [
-                new(Read),
+                new Instruction(Read),
                 new Instruction(Writeln),
-                new(Halt)
+                new Instruction(Halt)
             ]);
         Assert.Equal("7\n", output);
+    }
+
+    [Fact]
+    public void Program_FullExpression()
+    {
+        string output = Run("1 2 5 15", [
+            new Instruction(Read),
+            new Instruction(Read),
+            new Instruction(Add),
+            new Instruction(Read),
+            new Instruction(Mul),
+            new Instruction(Read),
+            new Instruction(Div),
+            new Instruction(Writeln)
+        ]);
+        Assert.Equal("1\n", output);
+    }
+
+    [Fact]
+    public void Program_AfterHaltNotWorks()
+    {
+        string output = Run("1 2 5", [
+            new Instruction(Read),
+            new Instruction(Read),
+            new Instruction(Add),
+            new Instruction(Writeln),
+            new Instruction(Halt),
+            new Instruction(Read),
+            new Instruction(Add),
+            new Instruction(Writeln)
+        ]);
+        Assert.Equal("3\n", output);
     }
 
     private static VirtualMachine Vm(string input, TextWriter output, params Instruction[] prog)
