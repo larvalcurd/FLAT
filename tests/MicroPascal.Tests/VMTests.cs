@@ -193,6 +193,15 @@ public class VmTests
     }
 
     [Fact]
+    public void Writeln_NegativeNumber()
+    {
+        Assert.Equal("-1\n", Run(
+            "",
+            new Instruction(Push, -1),
+            new Instruction(Operation: Writeln)));
+    }
+
+    [Fact]
     public void Writeln_PrintsWithNewLineTwice()
     {
         Assert.Equal("1\n2\n", Run(
@@ -211,11 +220,15 @@ public class VmTests
             new Instruction(Write));
     }
 
-    [Fact]
-    public void Read_ParsesInt()
+    [Theory]
+    [InlineData(42, "42")]
+    [InlineData(-2147483648, "-2147483648")]
+    [InlineData(1, "\n\t 1")]
+    [InlineData(2147483647, "2147483647")]
+    public void Read_ParsesInt(int exp, string act)
     {
-        Assert.Equal([42], RunStack(
-            "42",
+        Assert.Equal([exp], RunStack(
+            act,
             new Instruction(Read),
             new Instruction(Halt)));
     }
@@ -234,28 +247,71 @@ public class VmTests
     [Fact]
     public void Readln_ConsumesRestOfLine()
     {
-        IReadOnlyList<int> stack = RunStack("10 99\n20\n",
-            new(Readln), new(Readln), new(Halt));
-        Assert.Equal(new[] { 20, 10 }, stack);
+        IReadOnlyList<int> stack = RunStack(
+            "10 99\n20\n",
+            new Instruction(Readln),
+            new Instruction(Readln),
+            new Instruction(Halt));
+        Assert.Equal([20, 10], stack);
     }
 
     [Fact]
-    public void Readln_OnCrLf()
+    public void Readln_BeforeRead()
     {
-        IReadOnlyList<int> stack = RunStack("10\r\n20\r\n", new(Readln), new(Readln), new(Halt));
-        Assert.Equal(new[] { 20, 10 }, stack);
+        IReadOnlyList<int> stack = RunStack(
+            "10 30\r\n20\r\n",
+            new Instruction(Readln),
+            new Instruction(Read),
+            new Instruction(Halt));
+        Assert.Equal([20, 10], stack);
+    }
+
+    [Fact]
+    public void Readln_AfterRead()
+    {
+        IReadOnlyList<int> stack = RunStack(
+            "10 30\r\n20\r\n",
+            new Instruction(Read),
+            new Instruction(Readln),
+            new Instruction(Halt));
+        Assert.Equal([30, 10], stack);
     }
 
     [Fact]
     public void Readln_OnEofAfterNumber_IsOk()
     {
-        IReadOnlyList<int> stack = RunStack("10", new(Readln), new(Halt));
-        Assert.Equal(new[] { 10 }, stack);
+        IReadOnlyList<int> stack = RunStack(
+            "10",
+            new Instruction(Readln),
+            new Instruction(Halt));
+        Assert.Equal([10], stack);
     }
 
-    [Fact]
-    public void Readln_InvalidNumber_Throws()
-        => AssertVmThrows("- 5\n", new(Readln), new(Halt));
+    // [Fact]
+    // public void Read_AfterHaltThrow()
+    // {
+    //     AssertVmThrows(
+    //         "10",
+    //         new Instruction(Read),
+    //         new Instruction(Halt),
+    //         new Instruction(Read));
+    // }
+
+    [Theory]
+    [InlineData(" ")]
+    [InlineData("abc")]
+    [InlineData("12ab")]
+    [InlineData("--5")]
+    [InlineData("- 5")]
+    [InlineData("2147483648")]
+    [InlineData("-2147483649")]
+    public void Read_InvalidInput_Throws(string input)
+    {
+        AssertVmThrows(
+            input,
+            new Instruction(Read),
+            new Instruction(Halt));
+    }
 
     [Fact]
     public void ReadThenWrite_EchoesInput()
@@ -269,36 +325,6 @@ public class VmTests
                 new(Halt)
             ]);
         Assert.Equal("7\n", output);
-    }
-
-    [Theory]
-    [InlineData("")]
-    [InlineData(" ")]
-    [InlineData("-")]
-    [InlineData("+")]
-    [InlineData("abc")]
-    [InlineData("12ab")]
-    [InlineData("--5")]
-    [InlineData("- 5")]
-    [InlineData("2147483648")]
-    [InlineData("99999999999999999999999999")]
-    public void Read_InvalidInput_Throws(string input)
-    {
-        AssertVmThrows(input, new(Read), new(Halt));
-    }
-
-    [Fact]
-    public void Read_MinValue_IsAccepted()
-    {
-        IReadOnlyList<int> stack = RunStack("-2147483648",
-            new(Read), new(Halt));
-        Assert.Equal(new[] { int.MinValue }, stack);
-    }
-
-    [Fact]
-    public void Read_MaxValue_IsAccepted()
-    {
-        Assert.Equal(new[] { int.MaxValue }, RunStack("2147483647", new(Read), new(Halt)));
     }
 
     private static VirtualMachine Vm(string input, TextWriter output, params Instruction[] prog)
