@@ -29,7 +29,7 @@ public class VmTests
     }
 
     [Fact]
-    public void Push_OnlyHaltEmptyStack()
+    public void Halt_OnEmptyProgram_LeavesStackEmpty()
     {
         Assert.Equal([], RunStack(
             "",
@@ -293,7 +293,7 @@ public class VmTests
     public void Read_AfterEOFThrow()
     {
         AssertVmThrows(
-            "10^Z",
+            "10",
             new Instruction(Read),
             new Instruction(Read));
     }
