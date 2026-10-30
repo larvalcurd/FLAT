@@ -28,16 +28,14 @@ public class InputReader(TextReader input)
         }
 
         long acc = 0;
+        long limit = isNegative ? (long)int.MaxValue + 1 : int.MaxValue;
         while (ch != -1 && char.IsAsciiDigit((char)ch))
         {
             acc = acc * 10 + (ch - '0');
 
-            if (acc > int.MaxValue)
+            if (acc > limit)
             {
-                if (!isNegative || (isNegative && acc - int.MaxValue > 1))
-                {
                     throw new VmException("Integer input is out of range");
-                }
             }
 
             ch = input.Read();
