@@ -30,7 +30,7 @@ public class VirtualMachine(List<Instruction> program, TextReader? input = null,
     /// </summary>
     private int _ip;
 
-    public IReadOnlyList<int> StackSnapshot => _stack.ToArray();
+    public IReadOnlyList<int> StackSnapshot => [.. _stack];
 
     public void Run()
     {
@@ -51,58 +51,44 @@ public class VirtualMachine(List<Instruction> program, TextReader? input = null,
         switch (instruction.Operation)
         {
             case OpCodes.Halt:
-                _ip = _program.Count;
-                break;
+                {
+                    _ip = _program.Count;
+                    break;
+                }
+
             case OpCodes.Push:
-                _stack.Push(instruction.Operand ?? throw new VmException("Operand is null"));
-                break;
+                {
+                    _stack.Push(instruction.Operand ?? throw new VmException("Operand is null"));
+                    break;
+                }
+
             case OpCodes.Add:
                 {
-                    int b = Pop();
-                    int a = Pop();
-                    _stack.Push(a + b);
+                    Binary((a, b) => a + b);
                     break;
                 }
 
             case OpCodes.Sub:
                 {
-                    int b = Pop();
-                    int a = Pop();
-                    _stack.Push(a - b);
+                    Binary((a, b) => a - b);
                     break;
                 }
 
             case OpCodes.Mul:
                 {
-                    int b = Pop();
-                    int a = Pop();
-                    _stack.Push(a * b);
+                    Binary((a, b) => a * b);
                     break;
                 }
 
             case OpCodes.Div:
                 {
-                    int b = Pop();
-                    int a = Pop();
-                    if (b == 0)
-                    {
-                        throw new VmException("Division by zero");
-                    }
-
-                    _stack.Push(a / b);
+                    Binary((a, b) => b == 0 ? throw new VmException("Division by zero") : a / b);
                     break;
                 }
 
             case OpCodes.Mod:
                 {
-                    int b = Pop();
-                    int a = Pop();
-                    if (b == 0)
-                    {
-                        throw new VmException("Division by zero");
-                    }
-
-                    _stack.Push(a % b);
+                    Binary((a, b) => b == 0 ? throw new VmException("Division by zero") : a % b);
                     break;
                 }
 
@@ -114,65 +100,49 @@ public class VirtualMachine(List<Instruction> program, TextReader? input = null,
 
             case OpCodes.Eq:
                 {
-                    int b = Pop();
-                    int a = Pop();
-                    _stack.Push(a == b ? 1 : 0);
+                    Compare((a, b) => a == b);
                     break;
                 }
 
             case OpCodes.Ne:
                 {
-                    int b = Pop();
-                    int a = Pop();
-                    _stack.Push(a != b ? 1 : 0);
+                    Compare((a, b) => a != b);
                     break;
                 }
 
             case OpCodes.Lt:
                 {
-                    int b = Pop();
-                    int a = Pop();
-                    _stack.Push(a < b ? 1 : 0);
+                    Compare((a, b) => a < b);
                     break;
                 }
 
             case OpCodes.Le:
                 {
-                    int b = Pop();
-                    int a = Pop();
-                    _stack.Push(a <= b ? 1 : 0);
+                    Compare((a, b) => a <= b);
                     break;
                 }
 
             case OpCodes.Gt:
                 {
-                    int b = Pop();
-                    int a = Pop();
-                    _stack.Push(a > b ? 1 : 0);
+                    Compare((a, b) => a > b);
                     break;
                 }
 
             case OpCodes.Ge:
                 {
-                    int b = Pop();
-                    int a = Pop();
-                    _stack.Push(a >= b ? 1 : 0);
+                    Compare((a, b) => a >= b);
                     break;
                 }
 
             case OpCodes.And:
                 {
-                    int b = Pop();
-                    int a = Pop();
-                    _stack.Push(a != 0 && b != 0 ? 1 : 0);
+                    Logical((a, b) => a && b);
                     break;
                 }
 
             case OpCodes.Or:
                 {
-                    int b = Pop();
-                    int a = Pop();
-                    _stack.Push(a != 0 || b != 0 ? 1 : 0);
+                    Logical((a, b) => a || b);
                     break;
                 }
 
@@ -209,6 +179,39 @@ public class VirtualMachine(List<Instruction> program, TextReader? input = null,
             default:
                 throw new VmException($"Unsupported opcode: {instruction.Operation}");
         }
+    }
+
+    /// <summary>
+    /// Обертка для бинарных операций.
+    /// </summary>
+    /// <param name="op">Передаваемая операция вместе с операндами</param>
+    private void Binary(Func<int, int, int> op)
+    {
+        int b = Pop();
+        int a = Pop();
+        _stack.Push(op(a, b));
+    }
+
+    /// <summary>
+    /// Обертка для операций сравнения.
+    /// </summary>
+    /// <param name="op">Передаваемая операция вместе с операндами</param>
+    private void Compare(Func<int, int, bool> op)
+    {
+        int b = Pop();
+        int a = Pop();
+        _stack.Push(op(a, b) ? 1 : 0);
+    }
+
+    /// <summary>
+    /// Обертка для логических операций.
+    /// </summary>
+    /// <param name="op">Передаваемая операция вместе с операндами</param>
+    private void Logical(Func<bool, bool, bool> op)
+    {
+        int b = Pop();
+        int a = Pop();
+        _stack.Push(op(a != 0, b != 0) ? 1 : 0);
     }
 
     /// <summary>
