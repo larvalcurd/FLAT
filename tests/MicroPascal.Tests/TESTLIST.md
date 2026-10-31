@@ -152,12 +152,14 @@ begin, end, if, then, else, while, do, write, writeln, read, readln, true, false
 - [x] Read на 2 минуса (--5) - VmException
 - [x] Read на пробел - VmException
 - [x] Чтение на знаке без цифры (- 5) - VmException
+- [x] Чтение знака, а затем конец входящего потока (-) - VmException
 - [x] Readln считывает до следующей строки: "10 99\n20\n" → 10, 20
 - [x] Readln, затем Read - чтение продолжается со следующей строки
 - [x] Read, затем Readln - Readln дочитывает остаток текущей строки
 - [x] Readln на EOF после числа - нормальное завершение
 - [x] Повторный Read после EOF - VmException
 ### 22. Интеграционные сценарии
+- [x] Пустой конструктор ВМ использует Console. In и Console. Out
 - [x] Read + Writeln - эхо ввода
 - [x] Read + Add + Writeln - калькулятор суммы двух чисел из ввода
 - [x] Программа с Halt в середине - остаток не выполняется, вывод корректен

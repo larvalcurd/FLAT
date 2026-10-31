@@ -1,4 +1,6 @@
-﻿using VM;
+﻿using System.Net.Mime;
+
+using VM;
 
 using Xunit;
 
@@ -304,6 +306,7 @@ public class VmTests
     [InlineData("12ab")]
     [InlineData("--5")]
     [InlineData("- 5")]
+    [InlineData("-")]
     [InlineData("2147483648")]
     [InlineData("-2147483649")]
     public void Read_InvalidInput_Throws(string input)
@@ -358,6 +361,16 @@ public class VmTests
             new Instruction(Writeln)
         ]);
         Assert.Equal("3\n", output);
+    }
+
+    [Fact]
+    public void Constructor_EmptyVmConstructorCorrectly()
+    {
+        Console.SetIn(new StringReader(""));
+        Console.SetOut(new StringWriter());
+        VirtualMachine vm = new([new Instruction(Halt)]);
+        vm.Run();
+        Assert.Empty(vm.StackSnapshot);
     }
 
     private static VirtualMachine Vm(string input, TextWriter output, params Instruction[] prog)

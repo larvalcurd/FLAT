@@ -22,7 +22,12 @@ public class InputReader(TextReader input)
             ch = input.Read();
         }
 
-        if (ch == -1 || !char.IsAsciiDigit((char)ch))
+        if (ch == -1)
+        {
+            throw new VmException("Unexpected end of stream after sign");
+        }
+
+        if (!char.IsAsciiDigit((char)ch))
         {
             throw new VmException($"Invalid integer input: expected digit, got '{(char)ch}'");
         }
