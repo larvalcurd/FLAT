@@ -3,6 +3,7 @@
 /// <summary>
 /// Инструкции, реализуемые виртуальной машиной
 /// </summary>
+/// FIXME: переписать бинарные логические операции на побитный вид
 public enum OpCodes
 {
     Halt,
@@ -22,6 +23,9 @@ public enum OpCodes
     And,
     Or,
     Not,
+    Abs,
+    Min,
+    Max,
     Read,
     Readln,
     Write,

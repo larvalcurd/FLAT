@@ -136,19 +136,37 @@ public class VirtualMachine(List<Instruction> program, TextReader? input = null,
 
             case OpCodes.And:
                 {
-                    Logical((a, b) => a && b);
+                    Binary((a, b) => a & b);
                     break;
                 }
 
             case OpCodes.Or:
                 {
-                    Logical((a, b) => a || b);
+                    Binary((a, b) => a | b);
                     break;
                 }
 
             case OpCodes.Not:
                 {
-                    _stack.Push(Pop() == 0 ? 1 : 0);
+                    _stack.Push(~Pop());
+                    break;
+                }
+
+            case OpCodes.Abs:
+                {
+                    _stack.Push(Math.Abs(Pop()));
+                    break;
+                }
+
+            case OpCodes.Min:
+                {
+                    Binary(Math.Min);
+                    break;
+                }
+
+            case OpCodes.Max:
+                {
+                    Binary(Math.Max);
                     break;
                 }
 
@@ -201,17 +219,6 @@ public class VirtualMachine(List<Instruction> program, TextReader? input = null,
         int b = Pop();
         int a = Pop();
         _stack.Push(op(a, b) ? 1 : 0);
-    }
-
-    /// <summary>
-    /// Обертка для логических операций.
-    /// </summary>
-    /// <param name="op">Передаваемая операция вместе с операндами</param>
-    private void Logical(Func<bool, bool, bool> op)
-    {
-        int b = Pop();
-        int a = Pop();
-        _stack.Push(op(a != 0, b != 0) ? 1 : 0);
     }
 
     /// <summary>
