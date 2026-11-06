@@ -138,13 +138,13 @@ public class VmTests
     }
 
     [Theory]
-    [InlineData(And, 1, 1, 1)]
+    [InlineData(And, 5, 3, 1)]
+    [InlineData(And, 6, 3, 2)]
     [InlineData(And, 1, 0, 0)]
-    [InlineData(And, 0, 0, 0)]
-    [InlineData(Or, 1, 0, 1)]
+    [InlineData(Or, 5, 2, 7)]
+    [InlineData(Or, 8, 1, 9)]
     [InlineData(Or, 0, 0, 0)]
-    [InlineData(Or, 5, 0, 1)]
-    public void LogicalBinary_Works(OpCodes op, int a, int b, int expected)
+    public void BinaryOps_Works(OpCodes op, int a, int b, int expected)
     {
         IReadOnlyList<int> stack = RunStack(
             "",
@@ -155,9 +155,9 @@ public class VmTests
     }
 
     [Theory]
-    [InlineData(0, 1)]
-    [InlineData(1, 0)]
-    [InlineData(5, 0)]
+    [InlineData(0, -1)]
+    [InlineData(1, -2)]
+    [InlineData(5, -6)]
     public void Not_Works(int a, int expected)
     {
         IReadOnlyList<int> stack = RunStack(
