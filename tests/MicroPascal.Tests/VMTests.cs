@@ -167,6 +167,43 @@ public class VmTests
         Assert.Equal([expected], stack);
     }
 
+    [Theory]
+    [InlineData(Min, 2, 1, 1)]
+    [InlineData(Min, -2, -1, -2)]
+    [InlineData(Min, -1, 1, -1)]
+    [InlineData(Max, 2, 1, 2)]
+    [InlineData(Max, -2, -1, -1)]
+    [InlineData(Max, -1, 1, 1)]
+    public void MinMax_Works(OpCodes op, int a, int b, int expected)
+    {
+        IReadOnlyList<int> stack = RunStack(
+            "",
+            new Instruction(Push, a),
+            new Instruction(Push, b),
+            new Instruction(op));
+        Assert.Equal([expected], stack);
+    }
+
+    [Theory]
+    [InlineData(1, 1)]
+    [InlineData(-1, 1)]
+    [InlineData(0, 0)]
+    public void Abs_Works(int a, int expected)
+    {
+        IReadOnlyList<int> stack = RunStack(
+            "",
+            new Instruction(Push, a),
+            new Instruction(Abs));
+        Assert.Equal([expected], stack);
+    }
+
+    [Fact]
+    public void Abs_OverflowIntException()
+    {
+        Assert.Throws<OverflowException>(() =>
+            RunStack("", new Instruction(Push, int.MinValue), new Instruction(Abs)));
+    }
+
     [Fact]
     public void UnknownOpcode_Throws()
     {
