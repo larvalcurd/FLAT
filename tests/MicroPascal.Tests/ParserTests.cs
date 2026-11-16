@@ -8,25 +8,6 @@ namespace Parsing.UnitTests;
 
 public class ParserTests
 {
-    // TODO: для тестов, перед сдачей удалить
-    [Fact]
-    public void ParseProgram_Testing()
-    {
-        Parser parser = new("program Test; begin write(8 + 3 * 2); end.");
-
-        Instruction[] expected =
-        [
-            new Instruction(OpCodes.Push, 8),
-            new Instruction(OpCodes.Push, 3),
-            new Instruction(OpCodes.Push, 2),
-            new Instruction(OpCodes.Mul),
-            new Instruction(OpCodes.Add),
-            new Instruction(OpCodes.Write),
-        ];
-
-        Assert.Equal(expected, parser.ParseProgram());
-    }
-
     [Fact]
     public void ParseProgram_EmptyBlock_ReturnsNoInstructions()
     {
