@@ -2,16 +2,20 @@
 
 public class InputReader(TextReader input)
 {
-    public int ReadInt() => ReadIntCore();
+    public int ReadInt() => ReadIntCore(out _);
 
     public int ReadlnInt()
     {
-        int value = ReadIntCore();
-        SkipToEndOfLine();
+        int value = ReadIntCore(out bool isLineEnd);
+        if (!isLineEnd)
+        {
+            SkipToEndOfLine();
+        }
+
         return value;
     }
 
-    private int ReadIntCore()
+    private int ReadIntCore(out bool isLineEnd)
     {
         int ch = GetFirstNotWhiteSpaceSymbol();
 
@@ -40,7 +44,7 @@ public class InputReader(TextReader input)
 
             if (acc > limit)
             {
-                    throw new VmException("Integer input is out of range");
+                throw new VmException("Integer input is out of range");
             }
 
             ch = input.Read();
@@ -51,6 +55,7 @@ public class InputReader(TextReader input)
             throw new VmException($"Invalid integer input: unexpected character '{(char)ch}'");
         }
 
+        isLineEnd = ch is -1 or '\n' or '\r';
         return isNegative ? -(int)acc : (int)acc;
     }
 
@@ -64,8 +69,7 @@ public class InputReader(TextReader input)
             {
                 throw new VmException("Unexpected end of stream");
             }
-        }
-        while (char.IsWhiteSpace((char)ch));
+        } while (char.IsWhiteSpace((char)ch));
 
         return ch;
     }
