@@ -69,7 +69,8 @@ public class InputReader(TextReader input)
             {
                 throw new VmException("Unexpected end of stream");
             }
-        } while (char.IsWhiteSpace((char)ch));
+        }
+        while (char.IsWhiteSpace((char)ch));
 
         return ch;
     }
