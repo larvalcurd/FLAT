@@ -1,6 +1,4 @@
-﻿using System.Net.Mime;
-
-using VM;
+﻿using VM;
 
 using Xunit;
 
