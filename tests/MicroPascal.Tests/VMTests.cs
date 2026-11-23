@@ -280,11 +280,13 @@ public class VmTests
             new Instruction(Write));
     }
 
+    public static TheoryData<int, string> ReadBorderCases() => new()
+    {
+        { 42, "42" }, { -2147483648, "-2147483648" }, { 1, "\n\t 1" }, { 2147483647, "2147483647" },
+    };
+
     [Theory]
-    [InlineData(42, "42")]
-    [InlineData(-2147483648, "-2147483648")]
-    [InlineData(1, "\n\t 1")]
-    [InlineData(2147483647, "2147483647")]
+    [MemberData(nameof(ReadBorderCases))]
     public void Read_ParsesInt(int exp, string act)
     {
         Assert.Equal([exp], RunStack(
@@ -356,15 +358,20 @@ public class VmTests
             new Instruction(Read));
     }
 
+    public static TheoryData<string> ReadInvalidInputCases() =>
+    [
+        " ",
+        "abc",
+        "12ab",
+        "--5",
+        "- 5",
+        "-",
+        "2147483648",
+        "-2147483649"
+    ];
+
     [Theory]
-    [InlineData(" ")]
-    [InlineData("abc")]
-    [InlineData("12ab")]
-    [InlineData("--5")]
-    [InlineData("- 5")]
-    [InlineData("-")]
-    [InlineData("2147483648")]
-    [InlineData("-2147483649")]
+    [MemberData(nameof(ReadInvalidInputCases))]
     public void Read_InvalidInput_Throws(string input)
     {
         AssertVmThrows(
