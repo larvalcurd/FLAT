@@ -168,11 +168,11 @@ public class VmTests
         Assert.Equal([expected], stack);
     }
 
+    public static TheoryData<int, int> BinaryOpNotCases() => new() { { 0, -1 }, { 1, -2 }, { 5, -6 } };
+
     [Theory]
-    [InlineData(0, -1)]
-    [InlineData(1, -2)]
-    [InlineData(5, -6)]
-    public void Not_Works(int a, int expected)
+    [MemberData(nameof(BinaryOpNotCases))]
+    public void BinaryOpNot_Works(int a, int expected)
     {
         IReadOnlyList<int> stack = RunStack(
             "",
@@ -181,13 +181,18 @@ public class VmTests
         Assert.Equal([expected], stack);
     }
 
+    public static TheoryData<OpCodes, int, int, int> MinMaxCases() => new()
+    {
+        { Min, 2, 1, 1 },
+        { Min, -2, -1, -2 },
+        { Min, -1, 1, -1 },
+        { Max, 2, 1, 2 },
+        { Max, -2, -1, -1 },
+        { Max, -1, 1, 1 },
+    };
+
     [Theory]
-    [InlineData(Min, 2, 1, 1)]
-    [InlineData(Min, -2, -1, -2)]
-    [InlineData(Min, -1, 1, -1)]
-    [InlineData(Max, 2, 1, 2)]
-    [InlineData(Max, -2, -1, -1)]
-    [InlineData(Max, -1, 1, 1)]
+    [MemberData(nameof(MinMaxCases))]
     public void MinMax_Works(OpCodes op, int a, int b, int expected)
     {
         IReadOnlyList<int> stack = RunStack(
@@ -198,10 +203,10 @@ public class VmTests
         Assert.Equal([expected], stack);
     }
 
+    public static TheoryData<int, int> AbsCases() => new() { { 1, 1 }, { -1, 1 }, { 0, 0 }, };
+
     [Theory]
-    [InlineData(1, 1)]
-    [InlineData(-1, 1)]
-    [InlineData(0, 0)]
+    [MemberData(nameof(AbsCases))]
     public void Abs_Works(int a, int expected)
     {
         IReadOnlyList<int> stack = RunStack(
