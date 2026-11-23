@@ -71,11 +71,7 @@ public class VmTests
         Assert.Equal([expected], stack);
     }
 
-    public static TheoryData<int, int> NegFlipSignCases() => new()
-    {
-        { -5, 5},
-        { 5, -5 },
-    };
+    public static TheoryData<int, int> NegFlipSignCases() => new() { { -5, 5 }, { 5, -5 }, };
 
     [Theory]
     [MemberData(nameof(NegFlipSignCases))]
@@ -92,7 +88,7 @@ public class VmTests
     public void Div_ByZero_Throws()
         => AssertVmThrows(
             "",
-            new(Push, 10),
+            new Instruction(Push, 10),
             new Instruction(Push, 0),
             new Instruction(Div));
 
@@ -121,20 +117,25 @@ public class VmTests
         Assert.Equal([28], stack);
     }
 
+    public static TheoryData<OpCodes, int, int, int> ComparisonCases() => new()
+    {
+        { Eq, 5, 5, 1 },
+        { Eq, 5, 6, 0 },
+        { Ne, 5, 6, 1 },
+        { Ne, 5, 5, 0 },
+        { Lt, 3, 5, 1 },
+        { Lt, 5, 5, 0 },
+        { Le, 5, 5, 1 },
+        { Le, 6, 5, 0 },
+        { Gt, 6, 5, 1 },
+        { Gt, 5, 5, 0 },
+        { Ge, 5, 5, 1 },
+        { Ge, 3, 5, 0 },
+        { Le, 10 - 3, 5, 0 },
+    };
+
     [Theory]
-    [InlineData(Eq, 5, 5, 1)]
-    [InlineData(Eq, 5, 6, 0)]
-    [InlineData(Ne, 5, 6, 1)]
-    [InlineData(Ne, 5, 5, 0)]
-    [InlineData(Lt, 3, 5, 1)]
-    [InlineData(Lt, 5, 5, 0)]
-    [InlineData(Le, 5, 5, 1)]
-    [InlineData(Le, 6, 5, 0)]
-    [InlineData(Gt, 6, 5, 1)]
-    [InlineData(Gt, 5, 5, 0)]
-    [InlineData(Ge, 5, 5, 1)]
-    [InlineData(Ge, 3, 5, 0)]
-    [InlineData(Le, 10 - 3, 5, 0)]
+    [MemberData(nameof(ComparisonCases))]
     public void Comparison_Works(OpCodes op, int a, int b, int expected)
     {
         IReadOnlyList<int> stack = RunStack(
@@ -145,14 +146,19 @@ public class VmTests
         Assert.Equal([expected], stack);
     }
 
+    public static TheoryData<OpCodes, int, int, int> BinaryBitOpsCases() => new()
+    {
+        { And, 5, 3, 1 },
+        { And, 6, 3, 2 },
+        { And, 1, 0, 0 },
+        { Or, 5, 2, 7 },
+        { Or, 8, 1, 9 },
+        { Or, 0, 0, 0 },
+    };
+
     [Theory]
-    [InlineData(And, 5, 3, 1)]
-    [InlineData(And, 6, 3, 2)]
-    [InlineData(And, 1, 0, 0)]
-    [InlineData(Or, 5, 2, 7)]
-    [InlineData(Or, 8, 1, 9)]
-    [InlineData(Or, 0, 0, 0)]
-    public void BinaryOps_Works(OpCodes op, int a, int b, int expected)
+    [MemberData(nameof(BinaryBitOpsCases))]
+    public void BinaryBitOps_Works(OpCodes op, int a, int b, int expected)
     {
         IReadOnlyList<int> stack = RunStack(
             "",
