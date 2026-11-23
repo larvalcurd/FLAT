@@ -50,31 +50,41 @@ public class VmTests
             new Instruction(Add),
             new Instruction(Halt));
 
+    public static TheoryData<OpCodes, int, int, int> BinaryOpCases() => new()
+    {
+        { OpCodes.Add, 2, 3, 5 },
+        { OpCodes.Sub, 10, 3, 7 },
+        { OpCodes.Mul, 6, 7, 42 },
+        { OpCodes.Div, 20, 5, 4 },
+        { OpCodes.Mod, 10, 3, 1 },
+    };
+
     [Theory]
-    [InlineData(Add, 2, 3, 5)]
-    [InlineData(Sub, 10, 3, 7)]
-    [InlineData(Mul, 6, 7, 42)]
-    [InlineData(Div, 20, 5, 4)]
-    [InlineData(Mod, 10, 3, 1)]
+    [MemberData(nameof(BinaryOpCases))]
     public void BinaryOp_ComputesCorrectly(OpCodes op, int a, int b, int expected)
     {
         IReadOnlyList<int> stack = RunStack(
             "",
-            new(Push, a),
+            new Instruction(Push, a),
             new Instruction(Push, b),
-            new(op));
+            new Instruction(op));
         Assert.Equal([expected], stack);
     }
 
+    public static TheoryData<int, int> NegFlipSignCases() => new()
+    {
+        { -5, 5},
+        { 5, -5 },
+    };
+
     [Theory]
-    [InlineData(-5, 5)]
-    [InlineData(5, -5)]
+    [MemberData(nameof(NegFlipSignCases))]
     public void Neg_FlipSign(int a, int expected)
     {
         IReadOnlyList<int> stack = RunStack(
             "",
-            new(Push, a),
-            new(Neg));
+            new Instruction(Push, a),
+            new Instruction(Neg));
         Assert.Equal([expected], stack);
     }
 
