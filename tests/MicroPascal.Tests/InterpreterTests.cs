@@ -14,7 +14,6 @@ public class InterpreterTests
         AssertExpressionOutput(expression, expected);
     }
 
-
     public static TheoryData<string, string> LeftAssociativityCases() => new()
     {
         { "10 - 3 - 2", "5" }, { "20 div 2 div 2", "5" },
@@ -68,14 +67,19 @@ public class InterpreterTests
         AssertExpressionOutput(expression, expected);
     }
 
+    public static TheoryData<string, string, string> ValidProgramCases() => new()
+    {
+        { "program Test; begin end.", "", "" },
+        {
+            "PROGRAM Test; BEGIN WRITE(MAX(read(), ABS(-3))); WRITELN(min(readln(), 8)); WRITELN(read()); END.",
+            "2 9 99\n7\n", "38\n7\n"
+        },
+        { "program Test; begin writeln(readln()); writeln(read()); end.", "10\n20\n", "10\n20\n" },
+        { "program Test; begin writeln(readln()); writeln(read()); end.", "10\r\n20\r\n", "10\n20\n" },
+    };
+
     [Theory]
-    [InlineData("program Test; begin end.", "", "")]
-    [InlineData(
-        "PROGRAM Test; BEGIN WRITE(MAX(read(), ABS(-3))); WRITELN(min(readln(), 8)); WRITELN(read()); END.",
-        "2 9 99\n7\n",
-        "38\n7\n")]
-    [InlineData("program Test; begin writeln(readln()); writeln(read()); end.", "10\n20\n", "10\n20\n")]
-    [InlineData("program Test; begin writeln(readln()); writeln(read()); end.", "10\r\n20\r\n", "10\n20\n")]
+    [MemberData(nameof(ValidProgramCases))]
     public void Run_Program_UsesProvidedInputAndOutput(string source, string inputText, string expected)
     {
         using StringReader input = new(inputText);
@@ -89,12 +93,17 @@ public class InterpreterTests
         Assert.Empty(errors.ToString());
     }
 
+    public static TheoryData<string, string, string> InvalidProgramCases() => new()
+    {
+        { "program Test; begin write(7); end. extra", "Expected Eof", "" },
+        { "program Test; begin write(7);", "Expected End", "" },
+        { "program Test; begin var end.", "Expected Write or Writeln", "" },
+        { "program Test; begin / end.", "Lexical error", "" },
+        { "program Test; begin writeln(7); writeln(1 div 0); writeln(8); end.", "Division by zero", "7\n" },
+    };
+
     [Theory]
-    [InlineData("program Test; begin write(7); end. extra", "Expected Eof", "")]
-    [InlineData("program Test; begin write(7);", "Expected End", "")]
-    [InlineData("program Test; begin var end.", "Expected Write or Writeln", "")]
-    [InlineData("program Test; begin / end.", "Lexical error", "")]
-    [InlineData("program Test; begin writeln(7); writeln(1 div 0); writeln(8); end.", "Division by zero", "7\n")]
+    [MemberData(nameof(InvalidProgramCases))]
     public void Run_InvalidProgram_ReportsErrorAndStops(string source, string expectedError, string expectedOutput)
     {
         using StringWriter output = new();
