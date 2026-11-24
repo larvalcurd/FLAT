@@ -27,32 +27,42 @@ public class InterpreterTests
         AssertExpressionOutput(expression, expected);
     }
 
+    public static TheoryData<string, string> ExpressionPrintResultCases() => new()
+    {
+        { "20 div 3", "6" }, { "20 mod 3", "2" }, { "6 and 3", "2" }, { "4 or 1", "5" },
+    };
+
     [Theory]
-    [InlineData("20 div 3", "6")]
-    [InlineData("20 mod 3", "2")]
-    [InlineData("6 and 3", "2")]
-    [InlineData("4 or 1", "5")]
+    [MemberData(nameof(ExpressionPrintResultCases))]
     public void Run_IntegerOperator_PrintsResult(string expression, string expected)
     {
         AssertExpressionOutput(expression, expected);
     }
 
+    public static TheoryData<string, string> UnaryMinusCases() => new()
+    {
+        { "-(2 + 3)", "-5" }, { "-((2 + 3))", "-5" }, { "-(-(2 + 3))", "5" },
+    };
+
     [Theory]
-    [InlineData("-(2 + 3)", "-5")]
-    [InlineData("-((2 + 3))", "-5")]
-    [InlineData("-(-(2 + 3))", "5")]
+    [MemberData(nameof(UnaryMinusCases))]
     public void Run_Expression_EvaluatesUnaryMinusWithParentheses(string expression, string expected)
     {
         AssertExpressionOutput(expression, expected);
     }
 
+    public static TheoryData<string, string> ComparisonCases() => new()
+    {
+        { "1 + 2 = 3", "1" },
+        { "2 <> 2", "0" },
+        { "3 > 2", "1" },
+        { "2 >= 3", "0" },
+        { "2 < 3", "1" },
+        { "2 <= 2", "1" },
+    };
+
     [Theory]
-    [InlineData("1 + 2 = 3", "1")]
-    [InlineData("2 <> 2", "0")]
-    [InlineData("3 > 2", "1")]
-    [InlineData("2 >= 3", "0")]
-    [InlineData("2 < 3", "1")]
-    [InlineData("2 <= 2", "1")]
+    [MemberData(nameof(ComparisonCases))]
     public void Run_Comparison_PrintsIntegerBoolean(string expression, string expected)
     {
         AssertExpressionOutput(expression, expected);
