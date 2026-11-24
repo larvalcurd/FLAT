@@ -176,9 +176,14 @@ public class LexerTests
         AssertTokenTypes(sourceText, expectedTokenTypes);
     }
 
+    public static TheoryData<string> InvalidIntegerCases() =>
+    [
+        "01",
+        "1_"
+    ];
+
     [Theory]
-    [InlineData("01")]
-    [InlineData("1_")]
+    [MemberData(nameof(InvalidIntegerCases))]
     public void NextToken_InvalidInteger_Throws(string sourceText)
     {
         LexerException ex = Assert.Throws<LexerException>(() => ScanTokens(sourceText));
@@ -234,11 +239,13 @@ public class LexerTests
         Assert.Equal(new SourcePosition(1, 2), ex.Position);
     }
 
+    public static TheoryData<string> NextTokenUnclosedStringCases() =>
+    [
+        "'a\nb'", "'a\rb'", "'a", "'a''"
+    ];
+
     [Theory]
-    [InlineData("'a\nb'")]
-    [InlineData("'a\rb'")]
-    [InlineData("'a")]
-    [InlineData("'a''")]
+    [MemberData(nameof(NextTokenUnclosedStringCases))]
     public void NextToken_UnclosedString_Throws(string sourceText)
     {
         LexerException ex = Assert.Throws<LexerException>(() => ScanTokens(sourceText));
@@ -416,9 +423,10 @@ public class LexerTests
         Assert.Equal(1, ex.Line);
     }
 
+    public static TheoryData<string> NextTokenEmptySourceCases() => ["", " \t\n\r\f\r\n"];
+
     [Theory]
-    [InlineData("")]
-    [InlineData(" \t\n\r\f\r\n")]
+    [MemberData(nameof(NextTokenEmptySourceCases))]
     public void NextToken_EmptySource_ReturnsEof(string sourceText)
     {
         AssertTokenTypes(sourceText, [TokenType.Eof]);
