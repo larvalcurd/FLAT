@@ -1,6 +1,4 @@
-﻿using System.Net.Mime;
-
-using VM;
+﻿using VM;
 
 using Xunit;
 
@@ -52,31 +50,37 @@ public class VmTests
             new Instruction(Add),
             new Instruction(Halt));
 
+    public static TheoryData<OpCodes, int, int, int> BinaryOpCases() => new()
+    {
+        { OpCodes.Add, 2, 3, 5 },
+        { OpCodes.Sub, 10, 3, 7 },
+        { OpCodes.Mul, 6, 7, 42 },
+        { OpCodes.Div, 20, 5, 4 },
+        { OpCodes.Mod, 10, 3, 1 },
+    };
+
     [Theory]
-    [InlineData(Add, 2, 3, 5)]
-    [InlineData(Sub, 10, 3, 7)]
-    [InlineData(Mul, 6, 7, 42)]
-    [InlineData(Div, 20, 5, 4)]
-    [InlineData(Mod, 10, 3, 1)]
+    [MemberData(nameof(BinaryOpCases))]
     public void BinaryOp_ComputesCorrectly(OpCodes op, int a, int b, int expected)
     {
         IReadOnlyList<int> stack = RunStack(
             "",
-            new(Push, a),
+            new Instruction(Push, a),
             new Instruction(Push, b),
-            new(op));
+            new Instruction(op));
         Assert.Equal([expected], stack);
     }
 
+    public static TheoryData<int, int> NegFlipSignCases() => new() { { -5, 5 }, { 5, -5 }, };
+
     [Theory]
-    [InlineData(-5, 5)]
-    [InlineData(5, -5)]
+    [MemberData(nameof(NegFlipSignCases))]
     public void Neg_FlipSign(int a, int expected)
     {
         IReadOnlyList<int> stack = RunStack(
             "",
-            new(Push, a),
-            new(Neg));
+            new Instruction(Push, a),
+            new Instruction(Neg));
         Assert.Equal([expected], stack);
     }
 
@@ -84,7 +88,7 @@ public class VmTests
     public void Div_ByZero_Throws()
         => AssertVmThrows(
             "",
-            new(Push, 10),
+            new Instruction(Push, 10),
             new Instruction(Push, 0),
             new Instruction(Div));
 
@@ -113,20 +117,25 @@ public class VmTests
         Assert.Equal([28], stack);
     }
 
+    public static TheoryData<OpCodes, int, int, int> ComparisonCases() => new()
+    {
+        { Eq, 5, 5, 1 },
+        { Eq, 5, 6, 0 },
+        { Ne, 5, 6, 1 },
+        { Ne, 5, 5, 0 },
+        { Lt, 3, 5, 1 },
+        { Lt, 5, 5, 0 },
+        { Le, 5, 5, 1 },
+        { Le, 6, 5, 0 },
+        { Gt, 6, 5, 1 },
+        { Gt, 5, 5, 0 },
+        { Ge, 5, 5, 1 },
+        { Ge, 3, 5, 0 },
+        { Le, 10 - 3, 5, 0 },
+    };
+
     [Theory]
-    [InlineData(Eq, 5, 5, 1)]
-    [InlineData(Eq, 5, 6, 0)]
-    [InlineData(Ne, 5, 6, 1)]
-    [InlineData(Ne, 5, 5, 0)]
-    [InlineData(Lt, 3, 5, 1)]
-    [InlineData(Lt, 5, 5, 0)]
-    [InlineData(Le, 5, 5, 1)]
-    [InlineData(Le, 6, 5, 0)]
-    [InlineData(Gt, 6, 5, 1)]
-    [InlineData(Gt, 5, 5, 0)]
-    [InlineData(Ge, 5, 5, 1)]
-    [InlineData(Ge, 3, 5, 0)]
-    [InlineData(Le, 10 - 3, 5, 0)]
+    [MemberData(nameof(ComparisonCases))]
     public void Comparison_Works(OpCodes op, int a, int b, int expected)
     {
         IReadOnlyList<int> stack = RunStack(
@@ -137,14 +146,19 @@ public class VmTests
         Assert.Equal([expected], stack);
     }
 
+    public static TheoryData<OpCodes, int, int, int> BinaryBitOpsCases() => new()
+    {
+        { And, 5, 3, 1 },
+        { And, 6, 3, 2 },
+        { And, 1, 0, 0 },
+        { Or, 5, 2, 7 },
+        { Or, 8, 1, 9 },
+        { Or, 0, 0, 0 },
+    };
+
     [Theory]
-    [InlineData(And, 5, 3, 1)]
-    [InlineData(And, 6, 3, 2)]
-    [InlineData(And, 1, 0, 0)]
-    [InlineData(Or, 5, 2, 7)]
-    [InlineData(Or, 8, 1, 9)]
-    [InlineData(Or, 0, 0, 0)]
-    public void BinaryOps_Works(OpCodes op, int a, int b, int expected)
+    [MemberData(nameof(BinaryBitOpsCases))]
+    public void BinaryBitOps_Works(OpCodes op, int a, int b, int expected)
     {
         IReadOnlyList<int> stack = RunStack(
             "",
@@ -154,11 +168,11 @@ public class VmTests
         Assert.Equal([expected], stack);
     }
 
+    public static TheoryData<int, int> BinaryOpNotCases() => new() { { 0, -1 }, { 1, -2 }, { 5, -6 } };
+
     [Theory]
-    [InlineData(0, -1)]
-    [InlineData(1, -2)]
-    [InlineData(5, -6)]
-    public void Not_Works(int a, int expected)
+    [MemberData(nameof(BinaryOpNotCases))]
+    public void BinaryOpNot_Works(int a, int expected)
     {
         IReadOnlyList<int> stack = RunStack(
             "",
@@ -167,13 +181,18 @@ public class VmTests
         Assert.Equal([expected], stack);
     }
 
+    public static TheoryData<OpCodes, int, int, int> MinMaxCases() => new()
+    {
+        { Min, 2, 1, 1 },
+        { Min, -2, -1, -2 },
+        { Min, -1, 1, -1 },
+        { Max, 2, 1, 2 },
+        { Max, -2, -1, -1 },
+        { Max, -1, 1, 1 },
+    };
+
     [Theory]
-    [InlineData(Min, 2, 1, 1)]
-    [InlineData(Min, -2, -1, -2)]
-    [InlineData(Min, -1, 1, -1)]
-    [InlineData(Max, 2, 1, 2)]
-    [InlineData(Max, -2, -1, -1)]
-    [InlineData(Max, -1, 1, 1)]
+    [MemberData(nameof(MinMaxCases))]
     public void MinMax_Works(OpCodes op, int a, int b, int expected)
     {
         IReadOnlyList<int> stack = RunStack(
@@ -184,10 +203,10 @@ public class VmTests
         Assert.Equal([expected], stack);
     }
 
+    public static TheoryData<int, int> AbsCases() => new() { { 1, 1 }, { -1, 1 }, { 0, 0 }, };
+
     [Theory]
-    [InlineData(1, 1)]
-    [InlineData(-1, 1)]
-    [InlineData(0, 0)]
+    [MemberData(nameof(AbsCases))]
     public void Abs_Works(int a, int expected)
     {
         IReadOnlyList<int> stack = RunStack(
@@ -261,11 +280,13 @@ public class VmTests
             new Instruction(Write));
     }
 
+    public static TheoryData<int, string> ReadBorderCases() => new()
+    {
+        { 42, "42" }, { -2147483648, "-2147483648" }, { 1, "\n\t 1" }, { 2147483647, "2147483647" },
+    };
+
     [Theory]
-    [InlineData(42, "42")]
-    [InlineData(-2147483648, "-2147483648")]
-    [InlineData(1, "\n\t 1")]
-    [InlineData(2147483647, "2147483647")]
+    [MemberData(nameof(ReadBorderCases))]
     public void Read_ParsesInt(int exp, string act)
     {
         Assert.Equal([exp], RunStack(
@@ -337,15 +358,20 @@ public class VmTests
             new Instruction(Read));
     }
 
+    public static TheoryData<string> ReadInvalidInputCases() =>
+    [
+        " ",
+        "abc",
+        "12ab",
+        "--5",
+        "- 5",
+        "-",
+        "2147483648",
+        "-2147483649"
+    ];
+
     [Theory]
-    [InlineData(" ")]
-    [InlineData("abc")]
-    [InlineData("12ab")]
-    [InlineData("--5")]
-    [InlineData("- 5")]
-    [InlineData("-")]
-    [InlineData("2147483648")]
-    [InlineData("-2147483649")]
+    [MemberData(nameof(ReadInvalidInputCases))]
     public void Read_InvalidInput_Throws(string input)
     {
         AssertVmThrows(
