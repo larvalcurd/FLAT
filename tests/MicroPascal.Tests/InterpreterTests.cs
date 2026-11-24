@@ -4,18 +4,24 @@ namespace Parsing.UnitTests;
 
 public class InterpreterTests
 {
+    public static TheoryData<string, string> ExpressionPrecedenceCases() =>
+        new() { { "2 + 3 * 4", "14" }, { "(2 + 3) * 4", "20" }, { "not 1 + 2", "0" }, };
+
     [Theory]
-    [InlineData("2 + 3 * 4", "14")]
-    [InlineData("(2 + 3) * 4", "20")]
-    [InlineData("not 1 + 2", "0")]
+    [MemberData(nameof(ExpressionPrecedenceCases))]
     public void Run_Expression_RespectsPrecedence(string expression, string expected)
     {
         AssertExpressionOutput(expression, expected);
     }
 
+
+    public static TheoryData<string, string> LeftAssociativityCases() => new()
+    {
+        { "10 - 3 - 2", "5" }, { "20 div 2 div 2", "5" },
+    };
+
     [Theory]
-    [InlineData("10 - 3 - 2", "5")]
-    [InlineData("20 div 2 div 2", "5")]
+    [MemberData(nameof(LeftAssociativityCases))]
     public void Run_Expression_UsesLeftAssociativity(string expression, string expected)
     {
         AssertExpressionOutput(expression, expected);
