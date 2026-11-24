@@ -78,23 +78,28 @@ public class ParserTests
         Assert.Equal(secondOrderPlusExpected, secondOrderPlusParser.ParseProgram());
     }
 
+    public static TheoryData<string, string, int, int> CorrectThrowingErrorCases() => new()
+    {
+        { "program Demo;\nbegin end", "Expected Dot, found Eof", 2, 9 },
+        { "program Demo;\nbegin end. extra", "Expected Eof, found Identifier", 2, 11 },
+        { "program Demo;\nbegin writeln(2) end.", "Expected Semicolon, found End", 2, 17 },
+        { "program Demo;\nbegin writeln(2; end.", "Expected CloseParen, found Semicolon", 2, 15 },
+        { "program Demo;\nbegin writeln(); end.", "Expected IntegerLiteral, found CloseParen", 2, 14 },
+        { "program Demo;\nbegin writeln(99999999999); end.", "Integer is out of range", 2, 14 },
+        { "program Demo;\nbegin writeln(1 < 2 < 3); end.", "Expected CloseParen, found Less", 2, 20 },
+        { "program Demo;\nbegin writeln(read(1)); end.", "Expected CloseParen, found IntegerLiteral", 2, 19 },
+        { "program Demo;\nbegin writeln(foo(1)); end.", "Unknown function 'foo'", 2, 14 },
+        { "program Demo;\nbegin writeln(abs(1, 2)); end.", "Function 'abs' expects 1 argument(s), got 2", 2, 14 },
+        { "program Demo;\nbegin writeln(max(1)); end.", "Function 'max' expects 2 argument(s), got 1", 2, 14 },
+    };
+
     [Theory]
-    [InlineData("program Demo;\nbegin end", "Expected Dot, found Eof", 2, 9)]
-    [InlineData("program Demo;\nbegin end. extra", "Expected Eof, found Identifier", 2, 11)]
-    [InlineData("program Demo;\nbegin writeln(2) end.", "Expected Semicolon, found End", 2, 17)]
-    [InlineData("program Demo;\nbegin writeln(2; end.", "Expected CloseParen, found Semicolon", 2, 15)]
-    [InlineData("program Demo;\nbegin writeln(); end.", "Expected IntegerLiteral, found CloseParen", 2, 14)]
-    [InlineData("program Demo;\nbegin writeln(99999999999); end.", "Integer is out of range", 2, 14)]
-    [InlineData("program Demo;\nbegin writeln(1 < 2 < 3); end.", "Expected CloseParen, found Less", 2, 20)]
-    [InlineData("program Demo;\nbegin writeln(read(1)); end.", "Expected CloseParen, found IntegerLiteral", 2, 19)]
-    [InlineData("program Demo;\nbegin writeln(foo(1)); end.", "Unknown function 'foo'", 2, 14)]
-    [InlineData("program Demo;\nbegin writeln(abs(1, 2)); end.", "Function 'abs' expects 1 argument(s), got 2", 2, 14)]
-    [InlineData("program Demo;\nbegin writeln(max(1)); end.", "Function 'max' expects 2 argument(s), got 1", 2, 14)]
+    [MemberData(nameof(CorrectThrowingErrorCases))]
     public void ParseProgram_InvalidProgram_ReportsErrorPosition(string source, string message, int line, int column)
     {
         Parser parser = new(source);
 
-        ParserException error = Assert.Throws<ParserException>(() => parser.ParseProgram());
+        ParserException error = Assert.Throws<ParserException>(parser.ParseProgram);
 
         Assert.Contains(message, error.Message);
         Assert.Equal(new SourcePosition(line, column), error.Position);
