@@ -9,7 +9,7 @@ namespace Lexer.UnitTests;
 public class VmTests
 {
     [Fact]
-    public void Push_WithoutHaltCorrectly()
+    public void Run_PushWithoutHalt_LeavesValuesOnStack()
     {
         Assert.Equal([2, 1], RunStack(
             "",
@@ -18,7 +18,7 @@ public class VmTests
     }
 
     [Fact]
-    public void Halt_StopsBeforeNextInstruction()
+    public void Run_HaltBeforeWriteln_PrintsNothing()
     {
         string output = Run(
             "",
@@ -29,7 +29,7 @@ public class VmTests
     }
 
     [Fact]
-    public void Halt_OnEmptyProgram_LeavesStackEmpty()
+    public void Run_HaltOnEmptyStack_LeavesStackEmpty()
     {
         Assert.Equal([], RunStack(
             "",
@@ -37,14 +37,14 @@ public class VmTests
     }
 
     [Fact]
-    public void Push_WithoutOperand_Throws()
+    public void Run_PushWithoutOperand_Throws()
         => AssertVmThrows(
             "",
             new Instruction(Push),
             new Instruction(Halt));
 
     [Fact]
-    public void Pop_FromEmptyStack_Throws()
+    public void Run_AddOnEmptyStack_Throws()
         => AssertVmThrows(
             "",
             new Instruction(Add),
@@ -61,7 +61,7 @@ public class VmTests
 
     [Theory]
     [MemberData(nameof(BinaryOpCases))]
-    public void BinaryOp_ComputesCorrectly(OpCodes op, int a, int b, int expected)
+    public void Run_ArithmeticOperation_PushesResult(OpCodes op, int a, int b, int expected)
     {
         IReadOnlyList<int> stack = RunStack(
             "",
@@ -75,7 +75,7 @@ public class VmTests
 
     [Theory]
     [MemberData(nameof(NegFlipSignCases))]
-    public void Neg_FlipSign(int a, int expected)
+    public void Run_NegInstruction_ChangesSign(int a, int expected)
     {
         IReadOnlyList<int> stack = RunStack(
             "",
@@ -85,7 +85,7 @@ public class VmTests
     }
 
     [Fact]
-    public void Div_ByZero_Throws()
+    public void Run_DivisionByZero_Throws()
         => AssertVmThrows(
             "",
             new Instruction(Push, 10),
@@ -93,7 +93,7 @@ public class VmTests
             new Instruction(Div));
 
     [Fact]
-    public void Mod_ByZero_Throws()
+    public void Run_ModuloByZero_Throws()
         => AssertVmThrows(
             "",
             new(Push, 10),
@@ -101,7 +101,7 @@ public class VmTests
             new Instruction(Mod));
 
     [Fact]
-    public void CalculateExpression_ComplexExpression()
+    public void Run_ArithmeticExpression_LeavesResultOnStack()
     {
         IReadOnlyList<int> stack = RunStack(
             "",
@@ -136,7 +136,7 @@ public class VmTests
 
     [Theory]
     [MemberData(nameof(ComparisonCases))]
-    public void Comparison_Works(OpCodes op, int a, int b, int expected)
+    public void Run_Comparison_PushesIntegerBoolean(OpCodes op, int a, int b, int expected)
     {
         IReadOnlyList<int> stack = RunStack(
             "",
@@ -158,7 +158,7 @@ public class VmTests
 
     [Theory]
     [MemberData(nameof(BinaryBitOpsCases))]
-    public void BinaryBitOps_Works(OpCodes op, int a, int b, int expected)
+    public void Run_BitwiseOperation_PushesResult(OpCodes op, int a, int b, int expected)
     {
         IReadOnlyList<int> stack = RunStack(
             "",
@@ -172,7 +172,7 @@ public class VmTests
 
     [Theory]
     [MemberData(nameof(BinaryOpNotCases))]
-    public void BinaryOpNot_Works(int a, int expected)
+    public void Run_NotInstruction_InvertsBits(int a, int expected)
     {
         IReadOnlyList<int> stack = RunStack(
             "",
@@ -193,7 +193,7 @@ public class VmTests
 
     [Theory]
     [MemberData(nameof(MinMaxCases))]
-    public void MinMax_Works(OpCodes op, int a, int b, int expected)
+    public void Run_MinOrMax_PushesSelectedValue(OpCodes op, int a, int b, int expected)
     {
         IReadOnlyList<int> stack = RunStack(
             "",
@@ -207,7 +207,7 @@ public class VmTests
 
     [Theory]
     [MemberData(nameof(AbsCases))]
-    public void Abs_Works(int a, int expected)
+    public void Run_AbsInstruction_PushesAbsoluteValue(int a, int expected)
     {
         IReadOnlyList<int> stack = RunStack(
             "",
@@ -217,14 +217,14 @@ public class VmTests
     }
 
     [Fact]
-    public void Abs_OverflowIntException()
+    public void Run_AbsOfMinInteger_ThrowsOverflowException()
     {
         Assert.Throws<OverflowException>(() =>
             RunStack("", new Instruction(Push, int.MinValue), new Instruction(Abs)));
     }
 
     [Fact]
-    public void UnknownOpcode_Throws()
+    public void Run_UnknownOpcode_Throws()
     {
         AssertVmThrows(
             "",
@@ -233,7 +233,7 @@ public class VmTests
     }
 
     [Fact]
-    public void Write_PrintsWithoutNewLine()
+    public void Run_WriteInstruction_PrintsWithoutNewLine()
     {
         Assert.Equal("12", Run(
             "",
@@ -244,7 +244,7 @@ public class VmTests
     }
 
     [Fact]
-    public void Writeln_PrintsWithNewLine()
+    public void Run_WritelnInstruction_PrintsWithNewLine()
     {
         Assert.Equal("1\n", Run(
             "",
@@ -253,7 +253,7 @@ public class VmTests
     }
 
     [Fact]
-    public void Writeln_NegativeNumber()
+    public void Run_WritelnNegativeNumber_PrintsSignAndValue()
     {
         Assert.Equal("-1\n", Run(
             "",
@@ -262,7 +262,7 @@ public class VmTests
     }
 
     [Fact]
-    public void Writeln_PrintsWithNewLineTwice()
+    public void Run_TwoWritelnInstructions_PrintSeparateLines()
     {
         Assert.Equal("1\n2\n", Run(
             "",
@@ -273,7 +273,7 @@ public class VmTests
     }
 
     [Fact]
-    public void Write_FromEmptyStackThrows()
+    public void Run_WriteOnEmptyStack_Throws()
     {
         AssertVmThrows(
             "",
@@ -287,7 +287,7 @@ public class VmTests
 
     [Theory]
     [MemberData(nameof(ReadBorderCases))]
-    public void Read_ParsesInt(int exp, string act)
+    public void Run_ReadInteger_PushesValue(int exp, string act)
     {
         Assert.Equal([exp], RunStack(
             act,
@@ -296,7 +296,7 @@ public class VmTests
     }
 
     [Fact]
-    public void Read_SkipsWhitespaceAndHandlesSigns()
+    public void Run_ReadSignedIntegers_SkipsWhitespace()
     {
         IReadOnlyList<int> stack = RunStack(
             "  -7  3  ",
@@ -307,7 +307,7 @@ public class VmTests
     }
 
     [Fact]
-    public void Readln_ConsumesRestOfLine()
+    public void Run_ReadlnInstruction_SkipsRestOfLine()
     {
         IReadOnlyList<int> stack = RunStack(
             "10 99\n20\n",
@@ -318,7 +318,7 @@ public class VmTests
     }
 
     [Fact]
-    public void Readln_BeforeRead()
+    public void Run_ReadAfterReadln_ReadsNextLine()
     {
         IReadOnlyList<int> stack = RunStack(
             "10 30\r\n20\r\n",
@@ -329,7 +329,7 @@ public class VmTests
     }
 
     [Fact]
-    public void Readln_AfterRead()
+    public void Run_ReadlnAfterRead_ReadsCurrentLine()
     {
         IReadOnlyList<int> stack = RunStack(
             "10 30\r\n20\r\n",
@@ -340,7 +340,7 @@ public class VmTests
     }
 
     [Fact]
-    public void Readln_OnEofAfterNumber_IsOk()
+    public void Run_ReadlnAtEofAfterNumber_PushesValue()
     {
         IReadOnlyList<int> stack = RunStack(
             "10",
@@ -350,7 +350,7 @@ public class VmTests
     }
 
     [Fact]
-    public void Read_AfterEOFThrow()
+    public void Run_ReadAfterEof_Throws()
     {
         AssertVmThrows(
             "10",
@@ -372,7 +372,7 @@ public class VmTests
 
     [Theory]
     [MemberData(nameof(ReadInvalidInputCases))]
-    public void Read_InvalidInput_Throws(string input)
+    public void Run_ReadInvalidInput_Throws(string input)
     {
         AssertVmThrows(
             input,
@@ -381,7 +381,7 @@ public class VmTests
     }
 
     [Fact]
-    public void ReadThenWrite_EchoesInput()
+    public void Run_ReadThenWriteln_PrintsInputValue()
     {
         string output = Run(
             "7",
@@ -395,7 +395,7 @@ public class VmTests
     }
 
     [Fact]
-    public void Program_FullExpression()
+    public void Run_ExpressionWithInput_PrintsResult()
     {
         string output = Run("1 2 5 15", [
             new Instruction(Read),
@@ -411,7 +411,7 @@ public class VmTests
     }
 
     [Fact]
-    public void Program_AfterHaltNotWorks()
+    public void Run_HaltAfterOutput_StopsFurtherExecution()
     {
         string output = Run("1 2 5", [
             new Instruction(Read),
@@ -427,7 +427,7 @@ public class VmTests
     }
 
     [Fact]
-    public void Constructor_EmptyVmConstructorCorrectly()
+    public void Run_DefaultInputAndOutput_LeavesStackEmpty()
     {
         Console.SetIn(new StringReader(""));
         Console.SetOut(new StringWriter());
