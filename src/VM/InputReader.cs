@@ -22,7 +22,7 @@ public class InputReader(TextReader input)
         bool isNegative = false;
         if (ch == '-')
         {
-            isNegative = ch == '-';
+            isNegative = true;
             ch = input.Read();
         }
 
